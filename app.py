@@ -8,7 +8,15 @@ app = Flask(__name__)
 def home():
     return render_template("index.html")
 
-
+@app.route('/transform',methods=["POST","GET"])
+def transform():
+    if request.method=="POST":
+        return render_template('transform.html')
+    else:
+        return render_template('transform.html')
+        
+        
+        
  
 
 if __name__ == "__main__":
