@@ -1,0 +1,578 @@
+/* =========================================================
+   FORMIFY — CUSTOM THEME
+   Tailwind handles layout/utilities.
+   This file handles theme + interactions only.
+========================================================= */
+
+
+/* =========================================================
+   BASE
+========================================================= */
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family:
+    Inter,
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+
+  background:
+    #f7f8fc;
+  color: #172033;
+}
+
+
+/* =========================================================
+   TEXT SELECTION
+========================================================= */
+
+::selection {
+  background: #e0e7ff;
+  color: #312e81;
+}
+
+
+/* =========================================================
+   SCROLLBAR
+========================================================= */
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f8fafc;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a5b4fc;
+}
+
+
+/* =========================================================
+   COMMON TRANSITIONS
+========================================================= */
+
+button,
+input,
+textarea,
+select {
+  -webkit-tap-highlight-color: transparent;
+}
+
+
+/* =========================================================
+   OUTPUT CARDS
+========================================================= */
+
+.output-card {
+  position: relative;
+  overflow: hidden;
+
+  transition:
+    transform 180ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    background-color 180ms ease;
+}
+
+
+/* Small accent line that appears on hover/selection */
+
+.output-card::before {
+  content: "";
+
+  position: absolute;
+  left: 0;
+  top: 0;
+
+  width: 100%;
+  height: 2px;
+
+  background: #6366f1;
+
+  transform: scaleX(0);
+  transform-origin: left;
+
+  transition: transform 180ms ease;
+}
+
+
+.output-card:hover {
+  transform: translateY(-2px);
+
+  border-color: #a5b4fc;
+
+  background: #ffffff;
+
+  box-shadow:
+    0 8px 24px rgba(79, 70, 229, 0.09);
+}
+
+
+.output-card:hover::before {
+  transform: scaleX(1);
+}
+
+
+/* Selected state */
+
+.output-card.is-selected {
+  border-color: #6366f1;
+
+  background: #f5f7ff;
+
+  box-shadow:
+    0 8px 24px rgba(79, 70, 229, 0.12);
+}
+
+
+.output-card.is-selected::before {
+  transform: scaleX(1);
+}
+
+
+/* Selected icon */
+
+.output-card.is-selected .output-icon {
+  background: #e0e7ff;
+
+  color: #4f46e5;
+
+  transform: scale(1.04);
+}
+
+
+/* Selection check */
+
+.output-check {
+  transition:
+    opacity 180ms ease,
+    transform 180ms ease;
+}
+
+
+.output-card.is-selected .output-check {
+  opacity: 1;
+
+  transform: scale(1);
+}
+
+
+/* =========================================================
+   FORM FIELDS
+========================================================= */
+
+.field {
+  transition:
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    background-color 180ms ease;
+}
+
+
+.field:hover {
+  border-color: #c7d2fe;
+}
+
+
+.field:focus {
+  outline: none;
+
+  border-color: #818cf8;
+
+  background: #ffffff;
+
+  box-shadow:
+    0 0 0 3px rgba(99, 102, 241, 0.12);
+}
+
+
+/* =========================================================
+   TEXTAREA
+========================================================= */
+
+textarea {
+  min-height: 90px;
+}
+
+
+textarea::placeholder {
+  color: #94a3b8;
+}
+
+
+/* =========================================================
+   SELECT
+========================================================= */
+
+select {
+  cursor: pointer;
+}
+
+
+select:focus {
+  outline: none;
+}
+
+
+/* =========================================================
+   SOURCE DROP ZONE
+========================================================= */
+
+.drop-zone {
+  position: relative;
+
+  transition:
+    border-color 180ms ease,
+    background-color 180ms ease,
+    box-shadow 180ms ease,
+    transform 180ms ease;
+}
+
+
+.drop-zone:hover {
+  border-color: #a5b4fc;
+
+  background: #f8f9ff;
+}
+
+
+.drop-zone.dragover {
+  border-color: #6366f1;
+
+  background: #f5f7ff;
+
+  box-shadow:
+    0 0 0 4px rgba(99, 102, 241, 0.08);
+
+  transform: scale(1.005);
+}
+
+
+/* =========================================================
+   FILE NAME
+========================================================= */
+
+#fileName {
+  transition:
+    background-color 180ms ease,
+    color 180ms ease,
+    border-color 180ms ease;
+}
+
+
+/* =========================================================
+   CLEAR BUTTON
+========================================================= */
+
+#clearSource {
+  transition:
+    color 160ms ease,
+    transform 160ms ease;
+}
+
+
+#clearSource:hover {
+  transform: translateX(1px);
+}
+
+
+/* =========================================================
+   GENERATE BUTTON
+========================================================= */
+
+.generate-btn {
+  position: relative;
+
+  overflow: hidden;
+
+  background: #4f46e5;
+
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease,
+    background-color 180ms ease;
+}
+
+
+.generate-btn:hover:not(:disabled) {
+  background: #4338ca;
+
+  transform: translateY(-1px);
+
+  box-shadow:
+    0 10px 25px rgba(79, 70, 229, 0.22);
+}
+
+
+.generate-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+
+.generate-btn:disabled {
+  cursor: not-allowed;
+
+  opacity: 0.55;
+
+  box-shadow: none;
+}
+
+
+/* =========================================================
+   GENERATE BUTTON SHINE
+========================================================= */
+
+.generate-btn::after {
+  content: "";
+
+  position: absolute;
+
+  top: 0;
+  left: -120%;
+
+  width: 70%;
+  height: 100%;
+
+  background: rgba(255, 255, 255, 0.12);
+
+  transform: skewX(-20deg);
+
+  transition: left 500ms ease;
+}
+
+
+.generate-btn:hover:not(:disabled)::after {
+  left: 140%;
+}
+
+
+/* =========================================================
+   NAVIGATION BUTTONS
+========================================================= */
+
+header button {
+  transition:
+    background-color 160ms ease,
+    color 160ms ease,
+    border-color 160ms ease;
+}
+
+
+/* =========================================================
+   PROFILE MENU
+========================================================= */
+
+#profileMenu {
+  transform-origin: top right;
+
+  animation: menuIn 150ms ease both;
+}
+
+
+@keyframes menuIn {
+  from {
+    opacity: 0;
+
+    transform:
+      translateY(-4px)
+      scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+
+    transform:
+      translateY(0)
+      scale(1);
+  }
+}
+
+
+/* =========================================================
+   GENERATED OUTPUTS
+========================================================= */
+
+#generatedSection {
+  animation: fadeUp 350ms ease both;
+}
+
+
+#generatedOutputs > article {
+  transition:
+    transform 180ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+
+#generatedOutputs > article:hover {
+  transform: translateY(-2px);
+
+  border-color: #c7d2fe;
+
+  box-shadow:
+    0 10px 30px rgba(30, 41, 59, 0.08);
+}
+
+
+/* =========================================================
+   OUTPUT ACTION BUTTONS
+========================================================= */
+
+.copy-output,
+.download-output {
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease,
+    transform 160ms ease;
+}
+
+
+.copy-output:hover,
+.download-output:hover {
+  transform: translateY(-1px);
+}
+
+
+/* =========================================================
+   REGENERATE
+========================================================= */
+
+.regenerate-output {
+  transition:
+    color 160ms ease,
+    transform 160ms ease;
+}
+
+
+.regenerate-output:hover {
+  transform: translateX(2px);
+}
+
+
+/* =========================================================
+   ERROR STATES
+========================================================= */
+
+#sourceError,
+#outputError,
+#generalError {
+  animation: errorIn 180ms ease both;
+}
+
+
+@keyframes errorIn {
+  from {
+    opacity: 0;
+
+    transform: translateY(-3px);
+  }
+
+  to {
+    opacity: 1;
+
+    transform: translateY(0);
+  }
+}
+
+
+/* =========================================================
+   TOAST
+========================================================= */
+
+.toast {
+  animation: toastIn 250ms ease both;
+}
+
+
+@keyframes toastIn {
+  from {
+    opacity: 0;
+
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+
+    transform: translateY(0);
+  }
+}
+
+
+/* =========================================================
+   FADE UP
+========================================================= */
+
+.fade-up {
+  animation: fadeUp 350ms ease both;
+}
+
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+
+    transform: translateY(0);
+  }
+}
+
+
+/* =========================================================
+   REDUCED MOTION
+========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+
+    animation-iteration-count: 1 !important;
+
+    transition-duration: 0.01ms !important;
+
+    scroll-behavior: auto !important;
+  }
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 640px) {
+
+  .output-card:hover {
+    transform: none;
+  }
+
+  #generatedOutputs > article:hover {
+    transform: none;
+  }
+
+  .generate-btn:hover:not(:disabled) {
+    transform: none;
+  }
+}
