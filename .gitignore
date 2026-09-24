@@ -1,0 +1,9 @@
+.env
+env
+.env.*
+__pycache__/
+*.pycenv
+env
+.env
+env
+.env

@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Formify — transform one source into multiple audience-ready outputs.">
+  <title>Formify — Transform</title>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Tailwind Custom Configuration -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif']
+          },
+          colors: {
+            formify: {
+              50: '#EEF2FF',
+              100: '#E0E7FF',
+              500: '#6366F1',
+              600: '#4F46E5',
+              700: '#4338CA'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Google Font: Inter -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    textarea::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    textarea::-webkit-scrollbar-thumb {
+      background-color: #D0D5DD;
+      border-radius: 4px;
+    }
+    textarea::-webkit-scrollbar-thumb:hover {
+      background-color: #98A2B3;
+    }
+  </style>
+</head>
+
+<body class="min-h-screen bg-[#F7F8FA] font-sans text-[#172033] antialiased">
+
+  <!-- Top Navigation -->
+  <header class="sticky top-0 z-30 border-b border-[#E4E7EC] bg-white/95 backdrop-blur">
+    <div class="mx-auto flex h-16 max-w-[1400px] items-center justify-between px-5 sm:px-8">
+
+      <a href="/" class="text-[21px] font-semibold tracking-[-0.02em] text-[#172033]">
+        Formify
+      </a>
+
+      <nav class="flex items-center gap-1" aria-label="Main navigation">
+
+        <a href="#" class="rounded-lg px-3 py-2 text-[13px] font-medium text-[#667085] transition hover:bg-[#F2F4F7] hover:text-[#172033]">
+          History
+        </a>
+
+        <a href="#" class="rounded-lg px-3 py-2 text-[13px] font-medium text-[#667085] transition hover:bg-[#F2F4F7] hover:text-[#172033]">
+          Help
+        </a>
+
+        <button type="button" id="profileButton"
+          class="ml-1 flex items-center gap-2 rounded-lg px-2.5 py-2 text-[#172033] transition hover:bg-[#F2F4F7]"
+          aria-expanded="false" aria-haspopup="true">
+          <span class="flex h-7 w-7 items-center justify-center rounded-full bg-[#E0E7FF] text-[11px] font-semibold text-[#4338CA]">U</span>
+          <span class="hidden sm:inline text-[13px] font-medium">User</span>
+          <svg class="h-3.5 w-3.5 text-[#667085]" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.168l3.71-3.938a.75.75 0 1 1 1.08 1.04l-4.25 4.5a.75.75 0 0 1-1.08 0l-4.25-4.5a.75.75 0 0 1 .02-1.06Z" clip-rule="evenodd"/>
+          </svg>
+        </button>
+
+        <div id="profileMenu" class="absolute right-5 top-14 hidden w-44 rounded-xl border border-[#E4E7EC] bg-white p-1.5 shadow-[0_10px_30px_rgba(16,24,40,0.08)] sm:right-8">
+          <a href="#" class="block rounded-lg px-3 py-2 text-[13px] text-[#344054] hover:bg-[#F2F4F7]">Account</a>
+          <a href="#" class="block rounded-lg px-3 py-2 text-[13px] text-[#344054] hover:bg-[#F2F4F7]">Settings</a>
+          <a href="#" class="block rounded-lg px-3 py-2 text-[13px] text-[#344054] hover:bg-[#F2F4F7]">Log out</a>
+        </div>
+
+      </nav>
+    </div>
+  </header>
+
+
+  <main class="mx-auto w-full max-w-[1180px] px-5 py-8 sm:px-8 lg:py-10">
+
+    <!-- Page Heading -->
+    <section class="mb-7">
+      <p class="mb-1.5 text-[12px] font-semibold uppercase tracking-[0.12em] text-[#667085]">Content workspace</p>
+      <h1 class="text-[25px] font-semibold tracking-[-0.025em] text-[#172033]">Create content</h1>
+      <p class="mt-1.5 max-w-2xl text-[14px] leading-6 text-[#667085]">
+        Transform one source into multiple audience-ready outputs.
+      </p>
+    </section>
+
+
+    <!-- Main Workspace -->
+    <section class="overflow-hidden rounded-2xl border border-[#E4E7EC] bg-white shadow-[0_2px_8px_rgba(16,24,40,0.03)]">
+
+
+      <!-- Source Section -->
+      <div class="border-b border-[#E4E7EC] p-5 sm:p-7">
+
+        <div class="mb-4">
+          <h2 class="text-[15px] font-semibold text-[#172033]">Source</h2>
+          <p class="mt-1 text-[13px] text-[#667085]">Paste your source content or upload a supported file.</p>
+        </div>
+
+        <label for="source_content_raw" class="sr-only">Source content</label>
+
+        <!-- id/name kept as source_content_raw to match the Flask backend's request.form key -->
+        <textarea
+          id="source_content_raw"
+          name="source_content_raw"
+          rows="8"
+          placeholder="Paste your source content here..."
+          class="w-full resize-y rounded-xl border border-[#D0D5DD] bg-white px-4 py-3 text-[14px] leading-6 text-[#172033] outline-none transition placeholder:text-[#98A2B3] focus:border-[#6366F1] focus:ring-4 focus:ring-[#EEF2FF]"
+        ></textarea>
+
+        <div class="my-4 flex items-center gap-3">
+          <div class="h-px flex-1 bg-[#EAECF0]"></div>
+          <span class="text-[11px] font-medium uppercase tracking-[0.08em] text-[#98A2B3]">or</span>
+          <div class="h-px flex-1 bg-[#EAECF0]"></div>
+        </div>
+
+        <label for="sourceFile"
+          class="flex cursor-pointer items-center justify-center rounded-xl border border-dashed border-[#D0D5DD] bg-[#FCFCFD] px-5 py-5 text-center transition hover:border-[#98A2B3] hover:bg-[#F9FAFB]">
+          <span>
+            <span class="block text-[13px] font-medium text-[#344054]">Upload a source file</span>
+            <span class="mt-1 block text-[12px] text-[#98A2B3]">PDF, DOCX, TXT or supported source formats</span>
+          </span>
+          <input id="sourceFile" name="sourceFile" type="file" class="hidden"
+            accept=".pdf,.doc,.docx,.txt,.md,.png,.jpg,.jpeg,.webp,.gif">
+        </label>
+
+        <p id="fileName" class="mt-2 hidden text-[12px] text-[#667085]"></p>
+        <p id="sourceError" class="mt-2 hidden text-[12px] font-medium text-[#B42318]"></p>
+
+      </div>
+
+
+      <!-- Output Types -->
+      <div class="border-b border-[#E4E7EC] p-5 sm:p-7">
+
+        <div class="mb-4 flex items-end justify-between gap-4">
+          <div>
+            <h2 class="text-[15px] font-semibold text-[#172033]">Output types</h2>
+            <p class="mt-1 text-[13px] text-[#667085]">Select one or more formats to generate from the same source.</p>
+          </div>
+          <span id="selectedCount" class="shrink-0 text-[12px] font-medium text-[#667085]">0 selected</span>
+        </div>
+
+        <div id="outputTypes" class="flex flex-wrap gap-2.5">
+          <button type="button" class="output-pill rounded-full border border-[#D0D5DD] bg-white px-4 py-2 text-[13px] font-medium text-[#344054] transition hover:border-[#98A2B3] hover:bg-[#F9FAFB]" data-output="executive-summary" aria-pressed="false">Executive Summary</button>
+          <button type="button" class="output-pill rounded-full border border-[#D0D5DD] bg-white px-4 py-2 text-[13px] font-medium text-[#344054] transition hover:border-[#98A2B3] hover:bg-[#F9FAFB]" data-output="technical-advisory" aria-pressed="false">Technical Advisory</button>
+          <button type="button" class="output-pill rounded-full border border-[#D0D5DD] bg-white px-4 py-2 text-[13px] font-medium text-[#344054] transition hover:border-[#98A2B3] hover:bg-[#F9FAFB]" data-output="linkedin-post" aria-pressed="false">LinkedIn Post</button>
+          <button type="button" class="output-pill rounded-full border border-[#D0D5DD] bg-white px-4 py-2 text-[13px] font-medium text-[#344054] transition hover:border-[#98A2B3] hover:bg-[#F9FAFB]" data-output="x-post" aria-pressed="false">X Post</button>
+          <button type="button" class="output-pill rounded-full border border-[#D0D5DD] bg-white px-4 py-2 text-[13px] font-medium text-[#344054] transition hover:border-[#98A2B3] hover:bg-[#F9FAFB]" data-output="infographic" aria-pressed="false">Infographic</button>
+          <button type="button" class="output-pill rounded-full border border-[#D0D5DD] bg-white px-4 py-2 text-[13px] font-medium text-[#344054] transition hover:border-[#98A2B3] hover:bg-[#F9FAFB]" data-output="presentation" aria-pressed="false">Presentation</button>
+          <button type="button" class="output-pill rounded-full border border-[#D0D5DD] bg-white px-4 py-2 text-[13px] font-medium text-[#344054] transition hover:border-[#98A2B3] hover:bg-[#F9FAFB]" data-output="incident-report" aria-pressed="false">Incident Report</button>
+        </div>
+
+        <p id="outputError" class="mt-2 hidden text-[12px] font-medium text-[#B42318]"></p>
+
+      </div>
+
+
+      <!-- Transformation Settings -->
+      <div class="border-b border-[#E4E7EC] p-5 sm:p-7">
+
+        <div class="mb-5">
+          <h2 class="text-[15px] font-semibold text-[#172033]">Transformation settings</h2>
+          <p class="mt-1 text-[13px] text-[#667085]">Adapt the generated content to the intended audience and communication goal.</p>
+        </div>
+
+        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+
+          <div>
+            <label for="audience" class="mb-1.5 block text-[12px] font-semibold text-[#344054]">Audience</label>
+            <select id="audience" name="audience" class="w-full rounded-xl border border-[#D0D5DD] bg-white px-3.5 py-2.5 text-[13px] text-[#344054] outline-none transition focus:border-[#6366F1] focus:ring-4 focus:ring-[#EEF2FF]">
+              <option value="security-leadership">Government &amp; Security Leadership</option>
+              <option value="soc-teams">Cybersecurity / SOC Teams</option>
+              <option value="field-teams">Incident Response / Field Teams</option>
+              <option value="policy-stakeholders">Government / Policy Stakeholders</option>
+              <option value="media">Media &amp; Journalists</option>
+              <option value="general-public">General Public</option>
+              <option value="employees">Employees / Internal Staff</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="tone" class="mb-1.5 block text-[12px] font-semibold text-[#344054]">Tone</label>
+            <select id="tone" name="tone" class="w-full rounded-xl border border-[#D0D5DD] bg-white px-3.5 py-2.5 text-[13px] text-[#344054] outline-none transition focus:border-[#6366F1] focus:ring-4 focus:ring-[#EEF2FF]">
+              <option value="professional">Professional</option>
+              <option value="urgent">Urgent</option>
+              <option value="friendly">Friendly</option>
+              <option value="authoritative">Authoritative</option>
+              <option value="educational">Educational</option>
+              <option value="persuasive">Persuasive</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="language" class="mb-1.5 block text-[12px] font-semibold text-[#344054]">Language</label>
+            <select id="language" name="language" class="w-full rounded-xl border border-[#D0D5DD] bg-white px-3.5 py-2.5 text-[13px] text-[#344054] outline-none transition focus:border-[#6366F1] focus:ring-4 focus:ring-[#EEF2FF]">
+              <option value="english">English</option>
+              <option value="hindi">Hindi</option>
+              <option value="hinglish">Hinglish</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="detailLevel" class="mb-1.5 block text-[12px] font-semibold text-[#344054]">Detail level</label>
+            <select id="detailLevel" name="detailLevel" class="w-full rounded-xl border border-[#D0D5DD] bg-white px-3.5 py-2.5 text-[13px] text-[#344054] outline-none transition focus:border-[#6366F1] focus:ring-4 focus:ring-[#EEF2FF]">
+              <option value="concise">Concise</option>
+              <option value="standard" selected>Standard</option>
+              <option value="detailed">Detailed</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="objective" class="mb-1.5 block text-[12px] font-semibold text-[#344054]">Communication objective</label>
+            <select id="objective" name="objective" class="w-full rounded-xl border border-[#D0D5DD] bg-white px-3.5 py-2.5 text-[13px] text-[#344054] outline-none transition focus:border-[#6366F1] focus:ring-4 focus:ring-[#EEF2FF]">
+              <option value="inform">Inform</option>
+              <option value="awareness">Raise awareness</option>
+              <option value="action">Drive action</option>
+              <option value="warn">Warn / alert</option>
+              <option value="persuade">Persuade</option>
+              <option value="trust">Build trust</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="style" class="mb-1.5 block text-[12px] font-semibold text-[#344054]">Style</label>
+            <select id="style" name="style" class="w-full rounded-xl border border-[#D0D5DD] bg-white px-3.5 py-2.5 text-[13px] text-[#344054] outline-none transition focus:border-[#6366F1] focus:ring-4 focus:ring-[#EEF2FF]">
+              <option value="clear">Clear and direct</option>
+              <option value="storytelling">Storytelling</option>
+              <option value="data-driven">Data-driven</option>
+              <option value="conversational">Conversational</option>
+              <option value="formal">Formal</option>
+            </select>
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <!-- Additional Instructions -->
+      <div class="p-5 sm:p-7">
+
+        <label for="additionalInstructions" class="mb-1.5 block text-[12px] font-semibold text-[#344054]">
+          Additional instructions
+          <span class="font-normal text-[#98A2B3]">(optional)</span>
+        </label>
+
+        <textarea
+          id="additionalInstructions"
+          name="additionalInstructions"
+          rows="3"
+          placeholder="Add any specific requirements for the generated outputs..."
+          class="w-full resize-y rounded-xl border border-[#D0D5DD] bg-white px-4 py-3 text-[13px] leading-5 text-[#172033] outline-none transition placeholder:text-[#98A2B3] focus:border-[#6366F1] focus:ring-4 focus:ring-[#EEF2FF]"
+        ></textarea>
+
+        <div class="mt-5 flex items-center justify-end">
+          <button type="button" id="generateButton"
+            class="inline-flex items-center justify-center rounded-xl bg-[#4F46E5] px-5 py-2.5 text-[13px] font-semibold text-white shadow-sm transition hover:bg-[#4338CA] focus:outline-none focus:ring-4 focus:ring-[#E0E7FF] disabled:cursor-not-allowed disabled:opacity-60">
+            Generate outputs
+          </button>
+        </div>
+
+        <p id="generalError" class="mt-3 hidden text-right text-[12px] font-medium text-[#B42318]"></p>
+
+      </div>
+
+    </section>
+
+
+    <!-- Generated Outputs -->
+    <section id="generatedSection" class="mt-7 hidden">
+      <div class="mb-4 flex items-end justify-between gap-4">
+        <div>
+          <h2 class="text-[17px] font-semibold text-[#172033]">Generated outputs</h2>
+          <p class="mt-1 text-[13px] text-[#667085]">Your selected outputs will appear here after generation.</p>
+        </div>
+      </div>
+      <div id="generatedOutputs" class="space-y-4"></div>
+    </section>
+
+  </main>
+
+
+  <footer class="mx-auto max-w-[1180px] px-5 pb-8 text-center text-[11px] text-[#98A2B3] sm:px-8">
+    Formify
+  </footer>
+
+  <script>
+    
+    document.addEventListener("formify:generate", async (event) => {
+
+      const formData = event.detail;
+
+      try {
+
+        const body = new FormData();
+
+        body.append("source_content_raw", formData.sourceText || "");
+
+        if (formData.file) {
+          body.append("sourceFile", formData.file);
+        }
+
+        formData.outputTypes.forEach((type) => {
+          body.append("output_types", type);
+        });
+
+        body.append("audience", formData.settings.audience);
+        body.append("tone", formData.settings.tone);
+        body.append("language", formData.settings.language);
+        body.append("detailLevel", formData.settings.detailLevel);
+        body.append("objective", formData.settings.objective);
+        body.append("style", formData.settings.style);
+        body.append("additionalInstructions", formData.additionalInstructions || "");
+
+        
+        const response = await fetch("/transform", {
+          method: "POST",
+          body
+        });
+
+        let data = {};
+
+        try {
+          data = await response.json();
+        } catch (error) {
+          data = {};
+        }
+
+        if (!response.ok) {
+          throw new Error(data.error || data.message || "Generation failed.");
+        }
+
+        handleGenerationResponse(data);
+
+      } catch (error) {
+
+        console.error("AJAX generation error:", error);
+
+        handleGenerationResponse({
+          error: error.message || "Something went wrong while generating outputs."
+        });
+
+      }
+
+    });
+  </script>
+
+  <script src="/static/transform.js"></script>
+
+</body>
+</html>
