@@ -135,6 +135,35 @@ FIELD_TYPES = {
 
 
 # =========================================================
+# FIELDS ALLOWED TO BE EMPTY
+# =========================================================
+#
+# Several prompts explicitly tell the model to leave a field empty when
+# the source does not support it, e.g. EXECUTIVE_SUMMARY_PROMPT says
+# "Include risks only when supported by the source." A short/neutral
+# source (like a plain greeting) can legitimately have no risks, no
+# recommended actions, no hashtags, etc. These fields must NOT be
+# flagged as invalid just for being an empty string/list -- only fields
+# that should always carry real content (title, overview, key_findings,
+# situation, opening, body_sections, slides, sections, ...) are still
+# required to be non-empty.
+
+OPTIONAL_EMPTY_FIELDS = {
+    "executive_summary": {"main_risks", "recommended_actions"},
+    "advisory": {
+        "risks_or_considerations",
+        "recommended_actions",
+        "limitations_or_unknowns",
+    },
+    "linkedin_post": {"call_to_action", "hashtags"},
+    "twitter_x_post": {"hashtags"},
+    "presentation": set(),
+    "infographic": {"subtitle", "footer"},
+    "video_package": set(),
+}
+
+
+# =========================================================
 # NESTED SCHEMAS
 # =========================================================
 
@@ -291,11 +320,17 @@ def validate_structure(data, expected_output_type):
 def validate_field_types(data, output_type):
     """
     Validate field data types and detect empty required content.
+
+    Fields listed in OPTIONAL_EMPTY_FIELDS for this output_type are
+    allowed to be an empty string/list -- the prompt itself tells the
+    model to leave them empty when the source doesn't support them, so
+    an empty value there is a correct answer, not a validation failure.
     """
 
     issues = []
 
     expected_fields = FIELD_TYPES.get(output_type, {})
+    optional_fields = OPTIONAL_EMPTY_FIELDS.get(output_type, set())
 
     for field, expected_type in expected_fields.items():
 
@@ -315,6 +350,9 @@ def validate_field_types(data, output_type):
                 f"Field '{field}' must be of type "
                 f"{expected_type.__name__}."
             )
+            continue
+
+        if field in optional_fields:
             continue
 
         if isinstance(value, str) and not value.strip():
@@ -522,6 +560,16 @@ def validate_sequence(data, output_type):
 # =========================================================
 # SOURCE GROUNDING VALIDATION
 # =========================================================
+#
+# NOTE: The literal JSON example inside this template used to be written
+# with single braces, e.g. { "valid": true, ... }. Because this string is
+# passed through str.format(), Python tried to interpret EVERY { ... }
+# block as a replacement field -- not just {source_brief} and
+# {generated_output}. That made it look for a field literally named
+# '\n    "valid"' (up to the colon), which doesn't exist, raising:
+#   KeyError: '\n    "valid"'
+# Fix: escape every literal brace in the JSON example as {{ and }}, so
+# .format() leaves them alone and only fills in the real placeholders.
 
 GROUNDING_VALIDATION_PROMPT = """
 You are the validation engine for Formify.
@@ -550,13 +598,13 @@ Check the generated output for:
 
 Return ONLY valid JSON using exactly this structure:
 
-{
+{{
     "valid": true,
     "issues": [],
     "unsupported_claims": [],
     "contradictions": [],
     "missing_or_distorted_information": []
-}
+}}
 
 Rules:
 
@@ -600,6 +648,8 @@ def validate_source_grounding(source_brief, generated_output):
 # =========================================================
 # OPERATOR SETTINGS VALIDATION
 # =========================================================
+#
+# Same fix applied here: JSON example braces escaped as {{ / }}.
 
 OPERATOR_SETTINGS_VALIDATION_PROMPT = """
 You are the validation engine for Formify.
@@ -650,11 +700,11 @@ Rules:
 
 Return ONLY valid JSON using exactly this structure:
 
-{
+{{
     "valid": true,
     "issues": [],
     "setting_violations": []
-}
+}}
 
 Rules for the result:
 
@@ -862,5 +912,3 @@ def validate_all(
             "operator_settings": operator_valid,
         },
     }
-
-    

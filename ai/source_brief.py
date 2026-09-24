@@ -1,4 +1,4 @@
-from ai.gemini_client import client, MODEL_NAME
+from ai.gemini_client import generate_with_gemini
 import json
 
 def create_source_brief(source_text):
@@ -33,9 +33,6 @@ Rules:
 - Preserve the meaning of the source.
 """
 
-    response = client.models.generate_content(
-        model=MODEL_NAME,
-        contents=prompt
-    )
+    response_text = generate_with_gemini(prompt)
 
-    return json.loads(response.text)
+    return json.loads(response_text)

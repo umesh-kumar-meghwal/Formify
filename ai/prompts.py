@@ -16,7 +16,7 @@ Follow these rules at all times:
    and uncertainties present in the source.
 8. Return the response in the exact structured format requested for the
    selected output type.
-""”
+"""
 SOURCE_GROUNDING_RULES = """
 Source Grounding Rules:
 
@@ -49,7 +49,7 @@ Source Grounding Rules:
 
 10. Keep all generated content within the factual scope of the provided
     source.
-""”
+"""
 
 OPERATOR_SETTINGS_RULES = """
 Operator Settings Rules:
@@ -70,7 +70,7 @@ Operator Settings Rules:
    must never override source-grounding and factual-integrity rules.
 10. Do not use operator settings as a reason to invent, exaggerate, or
     alter source-supported information.
-""”
+"""
 MISSING_INFORMATION_RULES = """
 Missing Information Rules:
 
@@ -97,7 +97,7 @@ Missing Information Rules:
 
 8. When information is insufficient, preserve accuracy and completeness
    over inventing content.
-""”
+"""
 
 OUTPUT_JSON_RULES = """
 Output JSON Rules:
@@ -124,7 +124,7 @@ Output JSON Rules:
    Formify frontend can parse, edit, display, and render the output.
 10. Return only the requested output type or types selected by the
     operator.
-""”
+"""
 EXECUTIVE_SUMMARY_PROMPT = """
 Create an Executive Summary from the provided Source Brief.
 
@@ -162,7 +162,7 @@ Return ONLY valid JSON using exactly this structure:
     "main_risks": [],
     "recommended_actions": []
 }
-""”
+"""
 
 
 ADVISORY_PROMPT = """
@@ -200,7 +200,7 @@ Return ONLY valid JSON using exactly this structure:
     "recommended_actions": [],
     "limitations_or_unknowns": []
 }
-""”
+"""
 LINKEDIN_POST_PROMPT = """
 Create a professional LinkedIn Post from the provided Source Brief.
 
@@ -239,7 +239,7 @@ Return ONLY valid JSON using exactly this structure:
     "call_to_action": "",
     "hashtags": []
 }
-""”
+"""
 
 TWITTER_X_POST_PROMPT = """
 Create an optimized Twitter/X Post or Thread from the provided Source Brief.
@@ -286,7 +286,7 @@ Rules for the "format" field:
 Rules for "posts":
 - For a single post, return exactly one object.
 - For a thread, return the posts in publishing order.
-""”
+"""
 PRESENTATION_PROMPT = """
 Create a professional Presentation from the provided Source Brief.
 
@@ -340,7 +340,7 @@ Rules for "slides":
 - "content" contains the main presentation points for that slide.
 - "speaker_notes" contains the corresponding speaker notes.
 - Keep the slide order logical and sequential.
-""”
+"""
 
 INFOGRAPHIC_PROMPT = """
 Create a complete infographic specification from the provided Source Brief.
@@ -438,7 +438,7 @@ Rules for the JSON structure:
   appropriate. If none is required, return an empty string.
 - Do not add fields outside this structure.
 - Return valid JSON only.
-""”
+"""
 VIDEO_PACKAGE_PROMPT = """
 Create a complete Video Package from the provided Source Brief.
 
@@ -592,4 +592,4 @@ Rules for the JSON structure:
 - Do not add fields outside this structure.
 
 - Return valid JSON only.
-""”
+"""
