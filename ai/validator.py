@@ -134,19 +134,6 @@ FIELD_TYPES = {
 }
 
 
-# =========================================================
-# FIELDS ALLOWED TO BE EMPTY
-# =========================================================
-#
-# Several prompts explicitly tell the model to leave a field empty when
-# the source does not support it, e.g. EXECUTIVE_SUMMARY_PROMPT says
-# "Include risks only when supported by the source." A short/neutral
-# source (like a plain greeting) can legitimately have no risks, no
-# recommended actions, no hashtags, etc. These fields must NOT be
-# flagged as invalid just for being an empty string/list -- only fields
-# that should always carry real content (title, overview, key_findings,
-# situation, opening, body_sections, slides, sections, ...) are still
-# required to be non-empty.
 
 OPTIONAL_EMPTY_FIELDS = {
     "executive_summary": {"main_risks", "recommended_actions"},
@@ -557,19 +544,7 @@ def validate_sequence(data, output_type):
     }
 
 
-# =========================================================
-# SOURCE GROUNDING VALIDATION
-# =========================================================
-#
-# NOTE: The literal JSON example inside this template used to be written
-# with single braces, e.g. { "valid": true, ... }. Because this string is
-# passed through str.format(), Python tried to interpret EVERY { ... }
-# block as a replacement field -- not just {source_brief} and
-# {generated_output}. That made it look for a field literally named
-# '\n    "valid"' (up to the colon), which doesn't exist, raising:
-#   KeyError: '\n    "valid"'
-# Fix: escape every literal brace in the JSON example as {{ and }}, so
-# .format() leaves them alone and only fills in the real placeholders.
+
 
 GROUNDING_VALIDATION_PROMPT = """
 You are the validation engine for Formify.
@@ -598,13 +573,13 @@ Check the generated output for:
 
 Return ONLY valid JSON using exactly this structure:
 
-{{
+{
     "valid": true,
     "issues": [],
     "unsupported_claims": [],
     "contradictions": [],
     "missing_or_distorted_information": []
-}}
+}
 
 Rules:
 

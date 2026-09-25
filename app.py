@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, send_file
 import datetime
 import uuid
 import os
@@ -8,6 +8,9 @@ from werkzeug.utils import secure_filename
 from ai.source_brief import create_source_brief
 from ai.pipeline import generate_validated_output
 from ai.file_reader import extract_text, FileReadError
+from ai.ppt_export import build_presentation_pptx
+from ai.infographic_export import build_infographic_html
+from ai.docx_export import build_report_docx
 from ai.frontend_adapter import (
     to_backend_type,
     setting_label,
@@ -120,6 +123,81 @@ def transform_api():
             return jsonify({'error': 'Internal Server Error. Please try again.'}), 500
     else:
         return render_template('transform.html')
+
+@app.route('/download/presentation', methods=["POST"])
+def download_presentation():
+    """
+    Takes the presentation JSON (the 'data' field already returned by
+    /transform for a presentation output) and returns a real .pptx file.
+    """
+    data = request.get_json(force=True, silent=True)
+
+    if not data or 'slides' not in data:
+        return jsonify({'error': 'Invalid presentation data'}), 400
+
+    try:
+        pptx_path = build_presentation_pptx(data)
+    except Exception as e:
+        print(f"PPTX export error: {e}")
+        return jsonify({'error': 'Could not build the PowerPoint file'}), 500
+
+    return send_file(
+        pptx_path,
+        as_attachment=True,
+        download_name="presentation.pptx",
+        mimetype="application/vnd.openxmlformats-officedocument.presentationml.presentation",
+    )
+
+
+@app.route('/download/infographic', methods=["POST"])
+def download_infographic():
+    """
+    Takes the infographic JSON (the 'data' field already returned by
+    /transform for an infographic output) and returns a styled .html file.
+    """
+    data = request.get_json(force=True, silent=True)
+
+    if not data or 'sections' not in data:
+        return jsonify({'error': 'Invalid infographic data'}), 400
+
+    try:
+        html_path = build_infographic_html(data)
+    except Exception as e:
+        print(f"Infographic export error: {e}")
+        return jsonify({'error': 'Could not build the infographic file'}), 500
+
+    return send_file(
+        html_path,
+        as_attachment=True,
+        download_name="infographic.html",
+        mimetype="text/html",
+    )
+
+
+@app.route('/download/report', methods=["POST"])
+def download_report():
+    """
+    Takes the executive_summary or advisory JSON (the 'data' field already
+    returned by /transform) and returns a real .docx file.
+    """
+    data = request.get_json(force=True, silent=True)
+
+    if not data or 'title' not in data:
+        return jsonify({'error': 'Invalid report data'}), 400
+
+    try:
+        docx_path = build_report_docx(data)
+    except Exception as e:
+        print(f"DOCX export error: {e}")
+        return jsonify({'error': 'Could not build the Word document'}), 500
+
+    return send_file(
+        docx_path,
+        as_attachment=True,
+        download_name="report.docx",
+        mimetype="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    )
+
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=5000)

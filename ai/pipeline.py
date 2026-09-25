@@ -1,10 +1,10 @@
 import json
 
 from .generators import generate_output
-from .validator import validate_all  # <-- apni validation file ka naam yahan match karo
+from ai.validator import validate_all  
 
 
-# Ek output ke liye kitni baar generate + validate try karna hai.
+
 MAX_ATTEMPTS = 2
 
 
@@ -19,6 +19,21 @@ def generate_validated_output(
     style=None,
     max_attempts=MAX_ATTEMPTS,
 ):
+    """
+    Generate one output type, validate it with validate_all(),
+    and retry if validation fails.
+
+    Returns:
+    {
+        "output_type": "...",
+        "status": "valid" | "needs_review",
+        "attempts": int,
+        "data": dict | None,          # parsed JSON output for the frontend
+        "validation": {...}           # result of validate_all()
+    }
+    """
+
+   
     if isinstance(source_brief, (dict, list)):
         source_brief_text = json.dumps(
             source_brief, ensure_ascii=False, indent=2
@@ -61,6 +76,7 @@ def generate_validated_output(
                 data = None
 
         except Exception as e:
+            print(f"[{output_type}] Generation or validation failed: {e}")
             data = None
             validation = {
                 "valid": False,
@@ -77,6 +93,7 @@ def generate_validated_output(
                 "validation": validation,
             }
 
+    
     return {
         "output_type": output_type,
         "status": "needs_review",

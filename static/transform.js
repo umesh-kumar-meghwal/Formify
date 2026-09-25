@@ -1,4 +1,3 @@
-
 const sourceText = document.getElementById("source_content_raw");
 const sourceFile = document.getElementById("sourceFile");
 const fileName = document.getElementById("fileName");
@@ -356,6 +355,23 @@ function createOutputCard(output) {
 
   const title = output.title || formatOutputTitle(output.type);
   const content = output.content || output.text || "";
+  const isPresentation = output.type === "presentation" && output.data;
+  const isInfographic = output.type === "infographic" && output.data;
+  const isReport =
+    (output.type === "executive-summary" || output.type === "technical-advisory") &&
+    output.data;
+  const isSocialPost =
+    (output.type === "linkedin-post" || output.type === "x-post") && output.data;
+
+  const downloadLabel = isPresentation
+    ? "Download .pptx"
+    : isInfographic
+    ? "Download .html"
+    : isReport
+    ? "Download .docx"
+    : isSocialPost
+    ? "Download .txt"
+    : "Download .md";
 
   card.innerHTML = `
     <div class="flex flex-col gap-3 border-b border-[#EAECF0] px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
@@ -383,7 +399,7 @@ function createOutputCard(output) {
       </div>
       <div class="flex flex-wrap items-center gap-2">
         <button type="button" class="copy-output rounded-lg border border-[#D0D5DD] bg-white px-3 py-1.5 text-[12px] font-medium text-[#344054] transition hover:bg-[#F9FAFB]" data-action="copy">Copy</button>
-        <button type="button" class="download-output rounded-lg border border-[#D0D5DD] bg-white px-3 py-1.5 text-[12px] font-medium text-[#344054] transition hover:bg-[#F9FAFB]" data-action="download">Download .md</button>
+        <button type="button" class="download-output rounded-lg border border-[#D0D5DD] bg-white px-3 py-1.5 text-[12px] font-medium text-[#344054] transition hover:bg-[#F9FAFB]" data-action="download">${downloadLabel}</button>
         <button type="button" class="regenerate-output rounded-lg border border-[#D0D5DD] bg-white px-3 py-1.5 text-[12px] font-medium text-[#344054] transition hover:bg-[#F9FAFB]" data-action="regenerate">Regenerate</button>
       </div>
     </div>
@@ -406,9 +422,64 @@ function createOutputCard(output) {
   });
 
   const downloadButton = card.querySelector(".download-output");
-  downloadButton.addEventListener("click", () => {
-    downloadMarkdown(title, content);
-  });
+
+  if (isPresentation) {
+    downloadButton.addEventListener("click", async () => {
+      const originalText = downloadButton.textContent;
+      downloadButton.textContent = "Preparing...";
+      downloadButton.disabled = true;
+
+      try {
+        await downloadPptx(title, output.data);
+      } catch (error) {
+        console.error("PPTX download failed:", error);
+        alert("Could not download the PowerPoint file. Please try again.");
+      } finally {
+        downloadButton.textContent = originalText;
+        downloadButton.disabled = false;
+      }
+    });
+  } else if (isInfographic) {
+    downloadButton.addEventListener("click", async () => {
+      const originalText = downloadButton.textContent;
+      downloadButton.textContent = "Preparing...";
+      downloadButton.disabled = true;
+
+      try {
+        await downloadInfographic(title, output.data);
+      } catch (error) {
+        console.error("Infographic download failed:", error);
+        alert("Could not download the infographic. Please try again.");
+      } finally {
+        downloadButton.textContent = originalText;
+        downloadButton.disabled = false;
+      }
+    });
+  } else if (isReport) {
+    downloadButton.addEventListener("click", async () => {
+      const originalText = downloadButton.textContent;
+      downloadButton.textContent = "Preparing...";
+      downloadButton.disabled = true;
+
+      try {
+        await downloadReportDocx(title, output.data);
+      } catch (error) {
+        console.error("DOCX download failed:", error);
+        alert("Could not download the Word document. Please try again.");
+      } finally {
+        downloadButton.textContent = originalText;
+        downloadButton.disabled = false;
+      }
+    });
+  } else if (isSocialPost) {
+    downloadButton.addEventListener("click", () => {
+      downloadSocialText(title, output.type, output.data);
+    });
+  } else {
+    downloadButton.addEventListener("click", () => {
+      downloadMarkdown(title, content);
+    });
+  }
 
   const regenerateButton = card.querySelector(".regenerate-output");
   regenerateButton.addEventListener("click", () => {
@@ -441,6 +512,146 @@ function downloadMarkdown(title, content) {
   const link = document.createElement("a");
   link.href = url;
   link.download = `${slugify(title)}.md`;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+}
+
+async function downloadPptx(title, presentationData) {
+  const response = await fetch("/download/presentation", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(presentationData)
+  });
+
+  if (!response.ok) {
+    let message = "Could not generate the PowerPoint file.";
+    try {
+      const errorData = await response.json();
+      if (errorData && errorData.error) message = errorData.error;
+    } catch (_) {}
+    throw new Error(message);
+  }
+
+  const blob = await response.blob();
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `${slugify(title)}.pptx`;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+}
+
+async function downloadReportDocx(title, reportData) {
+  const response = await fetch("/download/report", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(reportData)
+  });
+
+  if (!response.ok) {
+    let message = "Could not generate the Word document.";
+    try {
+      const errorData = await response.json();
+      if (errorData && errorData.error) message = errorData.error;
+    } catch (_) {}
+    throw new Error(message);
+  }
+
+  const blob = await response.blob();
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `${slugify(title)}.docx`;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+}
+
+function buildSocialPlainText(outputType, data) {
+  if (outputType === "linkedin-post") {
+    const parts = [];
+    if (data.opening) parts.push(data.opening);
+    if (Array.isArray(data.body_sections)) {
+      data.body_sections.forEach((section) => parts.push(section));
+    }
+    if (data.call_to_action) parts.push(data.call_to_action);
+
+    let text = parts.join("\n\n");
+
+    if (Array.isArray(data.hashtags) && data.hashtags.length > 0) {
+      const tags = data.hashtags
+        .map((tag) => (String(tag).startsWith("#") ? tag : `#${tag}`))
+        .join(" ");
+      text += `\n\n${tags}`;
+    }
+
+    return text;
+  }
+
+  if (outputType === "x-post") {
+    const posts = Array.isArray(data.posts) ? data.posts : [];
+    let text = posts
+      .slice()
+      .sort((a, b) => (a.position || 0) - (b.position || 0))
+      .map((post) =>
+        data.format === "thread"
+          ? `${post.position}/ ${post.content}`
+          : post.content
+      )
+      .join("\n\n---\n\n");
+
+    if (Array.isArray(data.hashtags) && data.hashtags.length > 0) {
+      const tags = data.hashtags
+        .map((tag) => (String(tag).startsWith("#") ? tag : `#${tag}`))
+        .join(" ");
+      text += `\n\n${tags}`;
+    }
+
+    return text;
+  }
+
+  return "";
+}
+
+function downloadSocialText(title, outputType, data) {
+  const text = buildSocialPlainText(outputType, data);
+  const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `${slugify(title)}.txt`;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+}
+
+async function downloadInfographic(title, infographicData) {
+  const response = await fetch("/download/infographic", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(infographicData)
+  });
+
+  if (!response.ok) {
+    let message = "Could not generate the infographic file.";
+    try {
+      const errorData = await response.json();
+      if (errorData && errorData.error) message = errorData.error;
+    } catch (_) {}
+    throw new Error(message);
+  }
+
+  const blob = await response.blob();
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `${slugify(title)}.html`;
   document.body.appendChild(link);
   link.click();
   link.remove();
