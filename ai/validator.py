@@ -69,6 +69,18 @@ OUTPUT_SCHEMAS = {
         "script",
         "storyboard",
     },
+        "incident_report": {
+        "output_type",
+        "title",
+        "summary",
+        "incident_details",
+        "timeline",
+        "affected_systems_or_entities",
+        "impact",
+        "response_actions_taken",
+        "recommendations",
+        "unresolved_or_unknown",
+    },
 }
 
 
@@ -130,6 +142,17 @@ FIELD_TYPES = {
         "total_duration": str,
         "script": str,
         "storyboard": list,
+    },
+        "incident_report": {
+        "title": str,
+        "summary": str,
+        "incident_details": str,
+        "timeline": list,
+        "affected_systems_or_entities": list,
+        "impact": str,
+        "response_actions_taken": list,
+        "recommendations": list,
+        "unresolved_or_unknown": list,
     },
 }
 
@@ -573,13 +596,13 @@ Check the generated output for:
 
 Return ONLY valid JSON using exactly this structure:
 
-{
+{{
     "valid": true,
     "issues": [],
     "unsupported_claims": [],
     "contradictions": [],
     "missing_or_distorted_information": []
-}
+}}
 
 Rules:
 
@@ -592,7 +615,6 @@ Rules:
 - If information is genuinely unavailable, do not assume it.
 - Return valid JSON only.
 """
-
 
 def validate_source_grounding(source_brief, generated_output):
     """
@@ -689,7 +711,6 @@ Rules for the result:
 - "setting_violations" identifies which settings were not followed.
 - Return valid JSON only.
 """
-
 
 def validate_operator_settings_with_ai(
     generated_output,

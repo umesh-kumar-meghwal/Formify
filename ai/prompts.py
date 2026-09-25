@@ -593,3 +593,54 @@ Rules for the JSON structure:
 
 - Return valid JSON only.
 """
+
+
+
+INCIDENT_REPORT_PROMPT = """
+Create a structured Incident Report from the provided Source Brief.
+
+Purpose:
+Transform the source information into a clear, factual incident report
+suitable for the specified target audience.
+
+Requirements:
+1. Clearly state the subject and nature of the incident described in the
+   source.
+2. Summarize the incident in a concise overview.
+3. Present the key details of the incident as understood from the source.
+4. Provide a chronological timeline of events only when dates, times, or
+   sequence information is present in the source.
+5. Identify affected systems, entities, or parties only when supported by
+   the source.
+6. Describe the impact of the incident only when supported by the source.
+7. List response actions already taken only when explicitly stated in the
+   source.
+8. Provide recommendations only when they are stated or clearly supported
+   by the source.
+9. Do not invent procedures, timelines, statistics, authorities, damages,
+   or outcomes.
+10. Preserve important conditions, limitations, and uncertainties from the
+    source.
+11. Apply the operator's audience, tone, language, detail level,
+    communication objective, and content style.
+12. If important information is unavailable, clearly indicate that it is
+    unavailable rather than guessing.
+13. Structure the report into separate meaningful sections so that each
+    section can be independently displayed and edited by the frontend.
+14. Do not combine the entire report into one large text field.
+
+Return ONLY valid JSON using exactly this structure:
+
+{
+    "output_type": "incident_report",
+    "title": "",
+    "summary": "",
+    "incident_details": "",
+    "timeline": [],
+    "affected_systems_or_entities": [],
+    "impact": "",
+    "response_actions_taken": [],
+    "recommendations": [],
+    "unresolved_or_unknown": []
+}
+"""

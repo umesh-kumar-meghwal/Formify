@@ -13,6 +13,7 @@ from .prompts import (
     PRESENTATION_PROMPT,
     INFOGRAPHIC_PROMPT,
     VIDEO_PACKAGE_PROMPT,
+    INCIDENT_REPORT_PROMPT,
 )
 
 
@@ -28,6 +29,7 @@ PROMPT_MAP = {
     "presentation": PRESENTATION_PROMPT,
     "infographic": INFOGRAPHIC_PROMPT,
     "video_package": VIDEO_PACKAGE_PROMPT,
+    "incident_report": INCIDENT_REPORT_PROMPT,
 }
 
 

@@ -1,6 +1,11 @@
 """
 Connects the Formify frontend (transform.html / transform.js) with the
 backend pipeline without changing either side.
+
+- Frontend output keys  -> backend output types
+- Frontend setting values -> readable labels for the prompts
+- Backend JSON output   -> {type, title, content, grounded, evidence}
+  which is exactly what transform.js renders.
 """
 
 # =========================================================
@@ -14,7 +19,7 @@ OUTPUT_TYPE_MAP = {
     "x-post": "twitter_x_post",
     "infographic": "infographic",
     "presentation": "presentation",
-    # "incident-report" has no backend prompt yet
+    "incident-report": "incident_report",
 }
 
 OUTPUT_TITLES = {
