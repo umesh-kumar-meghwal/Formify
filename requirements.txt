@@ -2,6 +2,7 @@ Flask
 flask-cors
 python-dotenv
 google-genai
+openai
 pypdf
 python-docx
 python-pptx

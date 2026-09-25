@@ -1,9 +1,11 @@
-from flask import Flask, render_template, request, jsonify, send_file
+from flask import Flask, render_template, request, jsonify, send_file,session,redirect
 import datetime
 import uuid
+import smtplib
 import os
 from dotenv import load_dotenv
 from google import genai
+from email.message import EmailMessage
 from werkzeug.utils import secure_filename
 from ai.source_brief import create_source_brief
 from ai.pipeline import generate_validated_output
@@ -17,6 +19,10 @@ from ai.frontend_adapter import (
     build_frontend_output,
     build_unsupported_output,
 )
+import secrets
+from datetime import datetime, timedelta, timezone
+from db import supabase
+from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
 load_dotenv()
@@ -34,6 +40,218 @@ client = genai.Client(api_key=api_key)
 @app.route("/")
 def home():
     return render_template("index.html")
+
+
+SMTP_EMAIL = os.environ.get("SMTP_EMAIL")
+SMTP_PASSWORD = os.environ.get("SMTP_PASSWORD")
+
+# =========================================================
+# OTP / EMAIL UTILITY
+# =========================================================
+def send_otp_email(to_email: str, otp: str):
+    if not SMTP_EMAIL or not SMTP_PASSWORD:
+        print("[EMAIL WARNING] SMTP credentials missing. OTP is:", otp)
+        return
+
+    msg = EmailMessage()
+    msg["Subject"] = "SarvShield Security Verification Code"
+    msg["From"] = SMTP_EMAIL
+    msg["To"] = to_email
+    msg.set_content(f"Your SarvShield verification code is: {otp}\nValid for 10 minutes.")
+
+    with smtplib.SMTP("smtp.gmail.com", 587) as server:
+        server.ehlo()
+        server.starttls()
+        server.ehlo()
+        server.login(SMTP_EMAIL.strip(), SMTP_PASSWORD.strip())
+        server.send_message(msg)
+
+
+# =========================================================
+# AUTHENTICATION ROUTES
+# =========================================================
+@app.route("/")
+def index():
+    return render_template("index.html")
+
+
+@app.route("/send-otp", methods=["POST"])
+def send_otp():
+    try:
+        email = request.form.get("email", "").strip().lower()
+        if not email or "@" not in email:
+            return jsonify({"success": False, "message": "A valid email address is required."}), 400
+
+        existing = supabase.table("login").select("email").eq("email", email).execute()
+        if existing.data:
+            return jsonify({"success": False, "message": "Email is already registered."}), 409
+
+        last_sent = session.get("otp_sent_at")
+        if last_sent:
+            current_time = datetime.now(timezone.utc).timestamp()
+            if current_time - last_sent < 60:
+                remaining = int(60 - (current_time - last_sent))
+                return jsonify({"success": False, "message": f"Please wait {remaining} seconds before requesting a new OTP."}), 429
+
+        otp = str(secrets.randbelow(900000) + 100000)
+        session["otp"] = otp
+        session["otp_email"] = email
+        session["otp_expires"] = (datetime.now(timezone.utc) + timedelta(minutes=10)).timestamp()
+        session["otp_sent_at"] = datetime.now(timezone.utc).timestamp()
+        session.pop("email_verified", None)
+
+        send_otp_email(email, otp)
+        return jsonify({"success": True, "message": "OTP sent successfully to your email."}), 200
+
+    except Exception as e:
+        print("SEND OTP ERROR:", e)
+        return jsonify({"success": False, "message": "Unable to send OTP at this time."}), 500
+
+
+@app.route("/verify-otp", methods=["POST"])
+def verify_otp():
+    try:
+        entered_otp = request.form.get("otp", "").strip()
+        saved_otp = session.get("otp")
+        otp_email = session.get("otp_email")
+        expires_at = session.get("otp_expires")
+
+        if not saved_otp or not otp_email:
+            return jsonify({"success": False, "message": "Please request an OTP first."}), 400
+
+        if not entered_otp.isdigit() or len(entered_otp) != 6:
+            return jsonify({"success": False, "message": "Enter a valid 6-digit OTP."}), 400
+
+        current_time = datetime.now(timezone.utc).timestamp()
+        if not expires_at or current_time > expires_at:
+            session.pop("otp", None)
+            return jsonify({"success": False, "message": "OTP has expired. Please request a new one."}), 400
+
+        if entered_otp != saved_otp:
+            return jsonify({"success": False, "message": "Invalid OTP entered."}), 400
+
+        session["email_verified"] = True
+        session["verified_email"] = otp_email
+        session.pop("otp", None)
+        session.pop("otp_expires", None)
+
+        return jsonify({"success": True, "message": "Email verified successfully!"}), 200
+
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)}), 500
+
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "GET":
+        if "email" in session:
+            return redirect("/admin-dashboard" if session.get("usertype") == "admin" else "/home")
+        return render_template("login.html")
+
+    try:
+        email = request.form.get("email", "").strip().lower()
+        password = request.form.get("password", "").strip()
+
+        if not email or not password:
+            return jsonify({"success": False, "message": "Email and password are required."}), 400
+
+        result = supabase.table("login").select("email, password, usertype").eq("email", email).execute()
+        if not result.data:
+            return jsonify({"success": False, "message": "Invalid email or password."}), 401
+
+        user = result.data[0]
+        stored_password = user.get("password", "")
+
+        is_valid = (
+            check_password_hash(stored_password, password)
+            if stored_password.startswith(("pbkdf2:", "scrypt:", "bcrypt:"))
+            else (stored_password == password)
+        )
+
+        if not is_valid:
+            return jsonify({"success": False, "message": "Invalid email or password."}), 401
+
+        session["email"] = user["email"]
+        session["usertype"] = user["usertype"]
+        redirect_url = "/admin-dashboard" if user["usertype"] == "admin" else "/home"
+
+        return jsonify({"success": True, "message": "Login successful!", "redirect": redirect_url}), 200
+
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)}), 500
+
+
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect("/login")
+
+
+
+@app.errorhandler(404)
+def page_not_found(error):
+    return render_template("404.html"), 404
+
+
+@app.errorhandler(500)
+def internal_server_error(error):
+    return render_template("404.html"), 500
+
+
+@app.errorhandler(403)
+def forbidden(error):
+    return render_template("404.html"), 403
+
+
+
+
+
+@app.route("/admin-show", methods=["GET"])
+def admin_show():
+    if "email" not in session or session.get("usertype") != "admin":
+        return redirect("/error")
+    try:
+        result = supabase.table("admin").select("name, email, phone, address").execute()
+        return render_template("admin-show.html", admins=result.data or [])
+    except Exception as e:
+        return f"Error: {str(e)}", 500
+    
+@app.route("/admin-register", methods=["GET", "POST"])
+def admin_register():
+    if "email" not in session or session.get("usertype") != "admin":
+        return redirect("/error")
+
+    if request.method == "GET":
+
+        return render_template("admin-register.html")
+
+    try:
+        name = request.form.get("name", "").strip()
+        email = request.form.get("email", "").strip()
+        password = request.form.get("password", "").strip()
+        address = request.form.get("address", "").strip()
+        phone = request.form.get("phone", "").strip()
+
+        if not name or not email or not password or not address:
+            return jsonify({"success": False, "message": "All fields are required"}), 400
+
+        existing = supabase.table("login").select("email").eq("email", email).execute()
+        if existing.data:
+            return jsonify({"success": False, "message": "Admin email already registered"}), 409
+
+        supabase.table("admin").insert({"name": name, "email": email, "phone": phone, "address": address}).execute()
+        supabase.table("login").insert({"email": email, "password": generate_password_hash(password), "usertype": "admin"}).execute()
+
+        return jsonify({"success": True, "message": "Admin registered successfully!"}), 201
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)}), 500
+
+
+
+
+
+
+
 
 
 @app.route('/transform', methods=["POST","GET"])
