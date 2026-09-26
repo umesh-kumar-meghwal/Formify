@@ -6,3 +6,5 @@ openai
 pypdf
 python-docx
 python-pptx
+pytesseract
+opencv-python
