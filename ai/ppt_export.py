@@ -2,71 +2,181 @@ import os
 import uuid
 
 from pptx import Presentation
+from pptx.util import Inches, Pt, Emu
+from pptx.dml.color import RGBColor
+from pptx.enum.text import PP_ALIGN, MSO_ANCHOR
+from pptx.enum.shapes import MSO_SHAPE
+from pptx.oxml.ns import qn
 
 
 GENERATED_DIR = "generated_files"
 
+# ---- Formify brand palette ----
+INDIGO_DARK = RGBColor(0x43, 0x38, 0xCA)   # #4338CA
+INDIGO = RGBColor(0x4F, 0x46, 0xE5)        # #4F46E5
+INDIGO_LIGHT = RGBColor(0xEE, 0xF2, 0xFF)  # #EEF2FF
+INK = RGBColor(0x17, 0x20, 0x33)           # #172033
+GRAY = RGBColor(0x66, 0x70, 0x85)          # #667085
+WHITE = RGBColor(0xFF, 0xFF, 0xFF)
+
+FONT = "Calibri"
+
+SLIDE_W = Inches(13.333)
+SLIDE_H = Inches(7.5)
+
+
+def _set_no_line(shape):
+    shape.line.fill.background()
+
+
+def _add_rect(slide, left, top, width, height, color):
+    shape = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, left, top, width, height)
+    shape.fill.solid()
+    shape.fill.fore_color.rgb = color
+    _set_no_line(shape)
+    shape.shadow.inherit = False
+    return shape
+
+
+def _add_text(
+    slide, left, top, width, height,
+    text, size=18, color=INK, bold=False, align=PP_ALIGN.LEFT,
+    anchor=MSO_ANCHOR.TOP, font=FONT,
+):
+    box = slide.shapes.add_textbox(left, top, width, height)
+    tf = box.text_frame
+    tf.word_wrap = True
+    tf.vertical_anchor = anchor
+    p = tf.paragraphs[0]
+    p.alignment = align
+    run = p.add_run()
+    run.text = text
+    run.font.size = Pt(size)
+    run.font.bold = bold
+    run.font.color.rgb = color
+    run.font.name = font
+    return box
+
+
+def _add_bullets(slide, left, top, width, height, items, size=16, color=INK):
+    box = slide.shapes.add_textbox(left, top, width, height)
+    tf = box.text_frame
+    tf.word_wrap = True
+
+    for i, item in enumerate(items):
+        p = tf.paragraphs[0] if i == 0 else tf.add_paragraph()
+        p.space_after = Pt(10)
+
+        # bullet marker as its own colored run
+        marker = p.add_run()
+        marker.text = "  \u2022  "
+        marker.font.size = Pt(size)
+        marker.font.bold = True
+        marker.font.color.rgb = INDIGO
+        marker.font.name = FONT
+
+        run = p.add_run()
+        run.text = str(item)
+        run.font.size = Pt(size)
+        run.font.color.rgb = color
+        run.font.name = FONT
+
+    return box
+
+
+def _add_slide_transition(slide, speed="med"):
+    """
+    python-pptx has no public API for slide transitions, so this injects
+    the <p:transition><p:fade/></p:transition> XML directly.
+    speed must be one of: "slow", "med", "fast".
+    """
+    cSld = slide.shapes._spTree.getparent()  # <p:cSld>
+    sld = cSld.getparent()                   # <p:sld> (transition is its sibling of cSld)
+
+    transition = sld.makeelement(qn('p:transition'), {'spd': speed})
+    fade = transition.makeelement(qn('p:fade'), {})
+    transition.append(fade)
+
+    idx = list(sld).index(cSld) + 1
+    sld.insert(idx, transition)
+
+
+def _footer(slide, page_num, total, brand="Formify"):
+    _add_text(
+        slide, Inches(0.5), SLIDE_H - Inches(0.5), Inches(3), Inches(0.4),
+        brand, size=10, color=GRAY, font=FONT,
+    )
+    _add_text(
+        slide, SLIDE_W - Inches(1.5), SLIDE_H - Inches(0.5), Inches(1), Inches(0.4),
+        f"{page_num} / {total}", size=10, color=GRAY, align=PP_ALIGN.RIGHT, font=FONT,
+    )
+
 
 def build_presentation_pptx(data):
     """
-    Convert the Formify 'presentation' JSON (from PRESENTATION_PROMPT) into
-    an actual .pptx file and return its path.
-
-    Expected shape:
-    {
-        "output_type": "presentation",
-        "title": "...",
-        "slides": [
-            {
-                "slide_number": 1,
-                "title": "...",
-                "content": ["point 1", "point 2"],
-                "speaker_notes": "..."
-            },
-            ...
-        ]
-    }
+    Convert the Formify 'presentation' JSON into a fully designed .pptx
+    deck (title slide + styled header bar / accent / bullets per slide),
+    instead of the plain default python-pptx layout.
     """
 
     os.makedirs(GENERATED_DIR, exist_ok=True)
 
     prs = Presentation()
+    prs.slide_width = SLIDE_W
+    prs.slide_height = SLIDE_H
 
-    # ---- Title slide ----
-    title_layout = prs.slide_layouts[0]
-    title_slide = prs.slides.add_slide(title_layout)
-    title_slide.shapes.title.text = data.get("title") or "Presentation"
+    blank_layout = prs.slide_layouts[6]  # blank layout -> full manual control
 
-    # ---- Content slides ----
-    content_layout = prs.slide_layouts[1]  # "Title and Content"
+    slides_data = data.get("slides", [])
+    total_pages = len(slides_data) + 1  # +1 for title slide
+    title = data.get("title") or "Presentation"
 
-    for slide_data in data.get("slides", []):
+    # ---------- Title slide ----------
+    title_slide = prs.slides.add_slide(blank_layout)
+    _add_rect(title_slide, 0, 0, SLIDE_W, SLIDE_H, INDIGO_DARK)
+    _add_rect(title_slide, 0, Inches(3.2), SLIDE_W, Inches(0.06), INDIGO_LIGHT)
 
-        slide = prs.slides.add_slide(content_layout)
-        slide.shapes.title.text = slide_data.get("title") or ""
+    _add_text(
+        title_slide, Inches(1), Inches(2.6), SLIDE_W - Inches(2), Inches(1.4),
+        title, size=40, color=WHITE, bold=True, align=PP_ALIGN.LEFT,
+    )
+    _add_text(
+        title_slide, Inches(1), Inches(3.5), SLIDE_W - Inches(2), Inches(0.6),
+        "Generated by Formify", size=14, color=INDIGO_LIGHT, align=PP_ALIGN.LEFT,
+    )
+    _add_slide_transition(title_slide, speed="med")
 
-        body_placeholder = slide.placeholders[1]
-        text_frame = body_placeholder.text_frame
-        text_frame.clear()
+    # ---------- Content slides ----------
+    for i, slide_data in enumerate(slides_data, start=2):
+        slide = prs.slides.add_slide(blank_layout)
 
-        points = slide_data.get("content") or []
+        # header bar
+        _add_rect(slide, 0, 0, SLIDE_W, Inches(1.15), INDIGO_DARK)
+        _add_rect(slide, 0, Inches(1.15), SLIDE_W, Inches(0.05), INDIGO)
 
-        if not points:
-            points = [""]
+        # left accent bar
+        _add_rect(slide, 0, Inches(1.2), Inches(0.12), SLIDE_H - Inches(1.7), INDIGO_LIGHT)
 
-        for index, point in enumerate(points):
-            paragraph = (
-                text_frame.paragraphs[0] if index == 0
-                else text_frame.add_paragraph()
-            )
-            # Assign to run.text (not paragraph.text) so formatting
-            # is not collapsed to a single unstyled run.
-            run = paragraph.add_run()
-            run.text = str(point)
+        _add_text(
+            slide, Inches(0.6), Inches(0.2), SLIDE_W - Inches(1.2), Inches(0.8),
+            slide_data.get("title") or "", size=26, color=WHITE, bold=True,
+            anchor=MSO_ANCHOR.MIDDLE,
+        )
+
+        content = slide_data.get("content") or []
+        _add_bullets(
+            slide, Inches(0.9), Inches(1.7), SLIDE_W - Inches(1.8), SLIDE_H - Inches(2.4),
+            content, size=17, color=INK,
+        )
 
         notes = slide_data.get("speaker_notes")
         if notes:
             slide.notes_slide.notes_text_frame.text = notes
+
+        _add_slide_transition(slide, speed="med")
+        _footer(slide, i, total_pages)
+
+    _footer(title_slide, 1, total_pages)
 
     filename = f"{uuid.uuid4().hex}.pptx"
     output_path = os.path.join(GENERATED_DIR, filename)

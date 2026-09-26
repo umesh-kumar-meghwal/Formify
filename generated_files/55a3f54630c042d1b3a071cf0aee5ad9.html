@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Sahil Sen - Frontend Developer Professional Profile</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 40px 24px;
+    background: #F7F8FA;
+    font-family: -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    color: #172033;
+  }
+  .page {
+    max-width: 760px;
+    margin: 0 auto;
+    background: #FFFFFF;
+    border-radius: 20px;
+    padding: 48px 40px;
+    box-shadow: 0 2px 20px rgba(16,24,40,0.06);
+  }
+  h1 {
+    font-size: 30px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin: 0 0 8px;
+  }
+  .subtitle {
+    font-size: 15px;
+    color: #667085;
+    margin: 0 0 24px;
+  }
+  .key-messages {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 36px;
+  }
+  .pill {
+    background: #EEF2FF;
+    color: #4338CA;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 6px 14px;
+    border-radius: 999px;
+  }
+  .info-section {
+    margin-bottom: 34px;
+    padding-bottom: 30px;
+    border-bottom: 1px solid #EAECF0;
+  }
+  .info-section:last-of-type {
+    border-bottom: none;
+  }
+  .info-section h2 {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0 0 10px;
+  }
+  .section-key-message {
+    font-size: 14px;
+    font-weight: 600;
+    color: #4338CA;
+    margin: 0 0 14px;
+  }
+  .bullet-list, .checklist {
+    margin: 0;
+    padding-left: 20px;
+    font-size: 14px;
+    line-height: 1.7;
+    color: #344054;
+  }
+  .checklist {
+    list-style: none;
+    padding-left: 0;
+  }
+  .check-item {
+    padding-left: 26px;
+    position: relative;
+    margin-bottom: 6px;
+  }
+  .check-item::before {
+    content: "✓";
+    position: absolute;
+    left: 0;
+    color: #027A48;
+    font-weight: 700;
+  }
+  .stat-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  .stat {
+    background: #F9FAFB;
+    border-radius: 14px;
+    padding: 18px 22px;
+    min-width: 130px;
+    text-align: center;
+  }
+  .stat-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: #4338CA;
+  }
+  .stat-label {
+    font-size: 12px;
+    color: #667085;
+    margin-top: 4px;
+  }
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+  }
+  .mini-card {
+    background: #F9FAFB;
+    border-radius: 12px;
+    padding: 14px 16px;
+    font-size: 13.5px;
+    color: #344054;
+  }
+  .timeline {
+    border-left: 2px solid #E0E7FF;
+    padding-left: 20px;
+  }
+  .timeline-item {
+    position: relative;
+    margin-bottom: 16px;
+    font-size: 14px;
+    color: #344054;
+  }
+  .timeline-dot {
+    position: absolute;
+    left: -26px;
+    top: 4px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #4F46E5;
+  }
+  .process {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+  }
+  .step {
+    background: #F9FAFB;
+    border-radius: 12px;
+    padding: 12px 16px;
+    font-size: 13.5px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .step-number {
+    background: #4F46E5;
+    color: white;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .step-arrow {
+    color: #98A2B3;
+    font-size: 16px;
+  }
+  .callout {
+    background: #EEF2FF;
+    border-radius: 14px;
+    padding: 16px 20px;
+  }
+  .callout-text {
+    margin: 0;
+    font-size: 14px;
+    color: #4338CA;
+    font-weight: 500;
+  }
+  footer {
+    margin-top: 20px;
+    font-size: 12px;
+    color: #98A2B3;
+    text-align: center;
+  }
+  @media print {
+    body { background: white; padding: 0; }
+    .page { box-shadow: none; border-radius: 0; }
+  }
+</style>
+</head>
+<body>
+  <div class="page">
+    <h1>Sahil Sen - Frontend Developer Professional Profile</h1>
+    <p class="subtitle">Overview of qualifications, experience, and technical competencies</p>
+    <div class="key-messages"><span class="pill">Specialized in scalable and responsive web applications using JavaScript, TypeScript, React.js, and Next.js.</span><span class="pill">Experienced in UI development, API integration, and performance optimization with MERN stack expertise.</span></div>
+    
+        <section class="info-section">
+          <h2>Contact &amp; Location</h2>
+          <p class="section-key-message">Professional contact and location details</p>
+          <div class="card-grid"><div class="mini-card">Name: Sahil Sen</div><div class="mini-card">Location: Kota, India</div><div class="mini-card">Contact: +91 -7851838193</div><div class="mini-card">Email: sahilsen193@gmail.com</div><div class="mini-card">LinkedIn: linkedin.com/in/sahil -sen-b7a3482b9</div></div>
+        </section>
+        
+        <section class="info-section">
+          <h2>Education &amp; Training</h2>
+          <p class="section-key-message">Academic background and specialized technical training</p>
+          <div class="stat-grid"><div class="stat"><div class="stat-value"></div><div class="stat-label"></div></div></div>
+        </section>
+        
+        <section class="info-section">
+          <h2>Professional Experience</h2>
+          <p class="section-key-message">Practical industry experience in web and frontend development</p>
+          <div class="stat-grid"><div class="stat"><div class="stat-value"></div><div class="stat-label"></div></div></div>
+        </section>
+        
+        <section class="info-section">
+          <h2>Key Projects</h2>
+          <p class="section-key-message">Hands-on project portfolio highlighting full-stack and MERN stack capabilities</p>
+          <div class="card-grid"><div class="mini-card">Airbnb (Bookings) Full Stack Web Application</div><div class="mini-card">Zerodha (Stock Trading) MERN Stack</div><div class="mini-card">ChatGPT Application MERN Stack</div></div>
+        </section>
+        
+        <section class="info-section">
+          <h2>Technical Skills &amp; Languages</h2>
+          <p class="section-key-message">Comprehensive technical skill set focused on frontend development</p>
+          <ul class="bullet-list"><li>Core Technologies: JavaScript (ES5/ES6), TypeScript, React.js, Next.js, Redux &amp; Redux Toolkit, REST APIs, HTML5, CSS3, AJAX, XML, CI/CD</li><li>Competencies: Responsive Design, Performance Optimization, Cross-browser Compatibility, Git/Version Control</li><li>Spoken Languages: Hindi, English</li></ul>
+        </section>
+        
+    <footer>Source: Sahil Sen - Frontend Developer Resume</footer>
+  </div>
+</body>
+</html>

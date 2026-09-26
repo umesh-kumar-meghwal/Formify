@@ -2,33 +2,116 @@ import os
 import uuid
 import html
 
+from ai.image_gen import generate_icon_image
 
 GENERATED_DIR = "generated_files"
+
+MAX_IMAGES_PER_INFOGRAPHIC = 4
 
 
 def _esc(value):
     return html.escape(str(value)) if value not in (None, "") else ""
 
 
+def _to_number(value):
+    """Try to parse a value like '45%', '1,234', '3.5', 42 into a float."""
+    if isinstance(value, (int, float)):
+        return float(value)
+    if isinstance(value, str):
+        cleaned = value.strip().replace(",", "").replace("%", "")
+        try:
+            return float(cleaned)
+        except ValueError:
+            return None
+    return None
+
+
+def _render_bar_chart(items, width=620, bar_area_height=200):
+    """
+    items = [(label, numeric_value, raw_display_value), ...]
+    Renders a simple, dependency-free inline SVG bar chart.
+    """
+    n = len(items)
+    if n == 0:
+        return ""
+
+    max_value = max(v for _, v, _ in items) or 1
+    gap = 16
+    bar_width = min(70, (width - gap * (n + 1)) / n)
+    total_w = bar_width * n + gap * (n + 1)
+
+    label_h = 20
+    value_h = 20
+    svg_h = bar_area_height + label_h + value_h + 10
+
+    bars = []
+    x = gap
+    palette = ["#4F46E5", "#6366F1", "#818CF8", "#4338CA", "#A5B4FC", "#312E81"]
+
+    for i, (label, value, display) in enumerate(items):
+        bar_h = (value / max_value) * bar_area_height if max_value else 0
+        y = value_h + (bar_area_height - bar_h)
+        color = palette[i % len(palette)]
+
+        bars.append(f'''
+          <rect x="{x:.1f}" y="{y:.1f}" width="{bar_width:.1f}" height="{bar_h:.1f}"
+                rx="6" fill="{color}" />
+          <text x="{x + bar_width / 2:.1f}" y="{y - 6:.1f}" text-anchor="middle"
+                font-size="13" font-weight="700" fill="#172033">{_esc(display)}</text>
+          <text x="{x + bar_width / 2:.1f}" y="{value_h + bar_area_height + 18:.1f}"
+                text-anchor="middle" font-size="11" fill="#667085">{_esc(label)}</text>
+        ''')
+        x += bar_width + gap
+
+    total_w = max(total_w, width)
+
+    return f'''
+    <div class="chart-wrap">
+      <svg viewBox="0 0 {total_w:.0f} {svg_h:.0f}" xmlns="http://www.w3.org/2000/svg"
+           style="width:100%; max-width:{total_w:.0f}px; height:auto;">
+        <line x1="0" y1="{value_h + bar_area_height:.1f}" x2="{total_w:.0f}" y2="{value_h + bar_area_height:.1f}"
+              stroke="#EAECF0" stroke-width="1" />
+        {"".join(bars)}
+      </svg>
+    </div>
+    '''
+
+
 def _render_visual_data(visual_data):
     """
     visual_data items can be plain strings/numbers or dicts like
-    {"label": "...", "value": "..."}. Render generically either way.
+    {"label": "...", "value": "..."}. When 2+ items have a numeric
+    value, render a real SVG bar chart; otherwise fall back to
+    simple stat cards.
     """
     if not visual_data:
         return ""
 
-    items_html = []
+    parsed = []
     for item in visual_data:
         if isinstance(item, dict):
             label = item.get("label") or item.get("name") or ""
-            value = item.get("value") or item.get("amount") or ""
-            items_html.append(
-                f'<div class="stat"><div class="stat-value">{_esc(value)}</div>'
-                f'<div class="stat-label">{_esc(label)}</div></div>'
-            )
+            raw_value = item.get("value") or item.get("amount") or ""
         else:
-            items_html.append(f'<div class="stat"><div class="stat-value">{_esc(item)}</div></div>')
+            label = ""
+            raw_value = item
+
+        number = _to_number(raw_value)
+        parsed.append((label, number, raw_value))
+
+    numeric_items = [(l, n, r) for (l, n, r) in parsed if n is not None]
+
+    if len(numeric_items) >= 2:
+        return _render_bar_chart(numeric_items)
+
+    # fallback: plain stat cards (single stat, or non-numeric values)
+    items_html = []
+    for label, number, raw_value in parsed:
+        items_html.append(
+            f'<div class="stat"><div class="stat-value">{_esc(raw_value)}</div>'
+            + (f'<div class="stat-label">{_esc(label)}</div>' if label else "")
+            + '</div>'
+        )
 
     return f'<div class="stat-grid">{"".join(items_html)}</div>'
 
@@ -73,10 +156,15 @@ def _render_content_list(content, visual_type):
     return f'<ul class="bullet-list">{items}</ul>'
 
 
-def build_infographic_html(data):
+def build_infographic_html(data, generate_images=True):
     """
     Convert the Formify 'infographic' JSON (from INFOGRAPHIC_PROMPT) into a
     single self-contained, styled HTML file and return its path.
+
+    generate_images: when True, calls OpenRouter's Image API to create a
+    small AI icon per section (capped at MAX_IMAGES_PER_INFOGRAPHIC, since
+    this is slow ~10-90s per image and costs credits). Any failure just
+    skips that section's image rather than breaking the whole export.
     """
 
     os.makedirs(GENERATED_DIR, exist_ok=True)
@@ -93,6 +181,8 @@ def build_infographic_html(data):
         key_messages_html = f'<div class="key-messages">{pills}</div>'
 
     sections_html = ""
+    images_used = 0
+
     for section in sections:
         heading = section.get("heading") or ""
         key_message = section.get("key_message") or ""
@@ -104,10 +194,27 @@ def build_infographic_html(data):
 
         key_msg_html = f'<p class="section-key-message">{_esc(key_message)}</p>' if key_message else ""
 
+        image_html = ""
+        if generate_images and images_used < MAX_IMAGES_PER_INFOGRAPHIC and heading:
+            prompt_text = f"{heading}. {key_message}".strip()
+            b64_data, media_type = generate_icon_image(prompt_text)
+
+            if b64_data:
+                images_used += 1
+                image_html = (
+                    f'<img class="section-icon" '
+                    f'src="data:{media_type};base64,{b64_data}" alt="{_esc(heading)}" />'
+                )
+
         sections_html += f"""
         <section class="info-section">
-          <h2>{_esc(heading)}</h2>
-          {key_msg_html}
+          <div class="section-head">
+            {image_html}
+            <div class="section-head-text">
+              <h2>{_esc(heading)}</h2>
+              {key_msg_html}
+            </div>
+          </div>
           {body}
         </section>
         """
@@ -174,6 +281,27 @@ def build_infographic_html(data):
     font-weight: 600;
     margin: 0 0 10px;
   }}
+  .section-head {{
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 6px;
+  }}
+  .section-head-text {{
+    flex: 1;
+    min-width: 0;
+  }}
+  .section-head h2 {{
+    margin: 0 0 6px;
+  }}
+  .section-icon {{
+    width: 64px;
+    height: 64px;
+    border-radius: 14px;
+    object-fit: cover;
+    flex-shrink: 0;
+    background: #F9FAFB;
+  }}
   .section-key-message {{
     font-size: 14px;
     font-weight: 600;
@@ -207,6 +335,10 @@ def build_infographic_html(data):
     display: flex;
     flex-wrap: wrap;
     gap: 16px;
+  }}
+  .chart-wrap {{
+    width: 100%;
+    overflow-x: auto;
   }}
   .stat {{
     background: #F9FAFB;

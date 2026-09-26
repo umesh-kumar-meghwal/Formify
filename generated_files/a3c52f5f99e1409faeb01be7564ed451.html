@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Sahil Sen - Professional Profile</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 40px 24px;
+    background: #F7F8FA;
+    font-family: -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    color: #172033;
+  }
+  .page {
+    max-width: 760px;
+    margin: 0 auto;
+    background: #FFFFFF;
+    border-radius: 20px;
+    padding: 48px 40px;
+    box-shadow: 0 2px 20px rgba(16,24,40,0.06);
+  }
+  h1 {
+    font-size: 30px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin: 0 0 8px;
+  }
+  .subtitle {
+    font-size: 15px;
+    color: #667085;
+    margin: 0 0 24px;
+  }
+  .key-messages {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 36px;
+  }
+  .pill {
+    background: #EEF2FF;
+    color: #4338CA;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 6px 14px;
+    border-radius: 999px;
+  }
+  .info-section {
+    margin-bottom: 34px;
+    padding-bottom: 30px;
+    border-bottom: 1px solid #EAECF0;
+  }
+  .info-section:last-of-type {
+    border-bottom: none;
+  }
+  .info-section h2 {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0 0 10px;
+  }
+  .section-head {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 6px;
+  }
+  .section-head-text {
+    flex: 1;
+    min-width: 0;
+  }
+  .section-head h2 {
+    margin: 0 0 6px;
+  }
+  .section-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 14px;
+    object-fit: cover;
+    flex-shrink: 0;
+    background: #F9FAFB;
+  }
+  .section-key-message {
+    font-size: 14px;
+    font-weight: 600;
+    color: #4338CA;
+    margin: 0 0 14px;
+  }
+  .bullet-list, .checklist {
+    margin: 0;
+    padding-left: 20px;
+    font-size: 14px;
+    line-height: 1.7;
+    color: #344054;
+  }
+  .checklist {
+    list-style: none;
+    padding-left: 0;
+  }
+  .check-item {
+    padding-left: 26px;
+    position: relative;
+    margin-bottom: 6px;
+  }
+  .check-item::before {
+    content: "✓";
+    position: absolute;
+    left: 0;
+    color: #027A48;
+    font-weight: 700;
+  }
+  .stat-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  .chart-wrap {
+    width: 100%;
+    overflow-x: auto;
+  }
+  .stat {
+    background: #F9FAFB;
+    border-radius: 14px;
+    padding: 18px 22px;
+    min-width: 130px;
+    text-align: center;
+  }
+  .stat-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: #4338CA;
+  }
+  .stat-label {
+    font-size: 12px;
+    color: #667085;
+    margin-top: 4px;
+  }
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+  }
+  .mini-card {
+    background: #F9FAFB;
+    border-radius: 12px;
+    padding: 14px 16px;
+    font-size: 13.5px;
+    color: #344054;
+  }
+  .timeline {
+    border-left: 2px solid #E0E7FF;
+    padding-left: 20px;
+  }
+  .timeline-item {
+    position: relative;
+    margin-bottom: 16px;
+    font-size: 14px;
+    color: #344054;
+  }
+  .timeline-dot {
+    position: absolute;
+    left: -26px;
+    top: 4px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #4F46E5;
+  }
+  .process {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+  }
+  .step {
+    background: #F9FAFB;
+    border-radius: 12px;
+    padding: 12px 16px;
+    font-size: 13.5px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .step-number {
+    background: #4F46E5;
+    color: white;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .step-arrow {
+    color: #98A2B3;
+    font-size: 16px;
+  }
+  .callout {
+    background: #EEF2FF;
+    border-radius: 14px;
+    padding: 16px 20px;
+  }
+  .callout-text {
+    margin: 0;
+    font-size: 14px;
+    color: #4338CA;
+    font-weight: 500;
+  }
+  footer {
+    margin-top: 20px;
+    font-size: 12px;
+    color: #98A2B3;
+    text-align: center;
+  }
+  @media print {
+    body { background: white; padding: 0; }
+    .page { box-shadow: none; border-radius: 0; }
+  }
+</style>
+</head>
+<body>
+  <div class="page">
+    <h1>Sahil Sen - Professional Profile</h1>
+    <p class="subtitle">Frontend Developer Professional Overview</p>
+    <div class="key-messages"><span class="pill">Sahil Sen is a Frontend Developer based in Kota, India, specializing in JavaScript, TypeScript, React.js, Next.js, and Redux.</span><span class="pill">Experienced in full-stack and frontend web development through internships, training, and projects using the MERN stack.</span></div>
+    
+        <section class="info-section">
+          <div class="section-head">
+            
+            <div class="section-head-text">
+              <h2>Contact &amp; Location</h2>
+              <p class="section-key-message">Candidate contact and location details.</p>
+            </div>
+          </div>
+          <ul class="bullet-list"><li>Name: Sahil Sen</li><li>Location: Kota, India</li><li>Phone: +91 -7851838193</li><li>Email: sahilsen193@gmail.com</li><li>LinkedIn: linkedin.com/in/sahil -sen-b7a3482b9</li></ul>
+        </section>
+        
+        <section class="info-section">
+          <div class="section-head">
+            
+            <div class="section-head-text">
+              <h2>Education &amp; Certifications</h2>
+              <p class="section-key-message">Academic background and technical certifications.</p>
+            </div>
+          </div>
+          <div class="card-grid"><div class="mini-card">Education: Master of Computer Application (MCA) from Manipal University, Jaipur</div><div class="mini-card">Certification: Computer Integrated Technologies from Manipal University Jaipur</div><div class="mini-card">Certification: Delta Full Stack Web Development from Apna College</div><div class="mini-card">Certification: C Language from VGT Kota centre</div></div>
+        </section>
+        
+        <section class="info-section">
+          <div class="section-head">
+            
+            <div class="section-head-text">
+              <h2>Experience &amp; Training</h2>
+              <p class="section-key-message">Practical industry experience in frontend and full-stack development.</p>
+            </div>
+          </div>
+          <div class="stat-grid"><div class="stat"><div class="stat-value"></div></div><div class="stat"><div class="stat-value"></div></div><div class="stat"><div class="stat-value"></div></div></div>
+        </section>
+        
+        <section class="info-section">
+          <div class="section-head">
+            
+            <div class="section-head-text">
+              <h2>Key Projects</h2>
+              <p class="section-key-message">Key software engineering projects developed.</p>
+            </div>
+          </div>
+          <div class="card-grid"><div class="mini-card">Airbnb (Bookings)</div><div class="mini-card">Zerodha (Stock Trading)</div><div class="mini-card">ChatGPT Application</div></div>
+        </section>
+        
+    
+  </div>
+</body>
+</html>
