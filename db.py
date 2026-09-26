@@ -5,15 +5,15 @@ from supabase import create_client, Client
 load_dotenv()
 
 SUPABASE_URL = os.getenv("SUPABASE_URL")
-SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
+SUPABASE_SECRET_KEY = os.getenv("SUPABASE_SECRET_KEY")
 
 if not SUPABASE_URL:
     raise ValueError("SUPABASE_URL is missing")
 
-if not SUPABASE_SERVICE_ROLE_KEY:
-    raise ValueError("SUPABASE_SERVICE_ROLE_KEY is missing")
+if not SUPABASE_SECRET_KEY:
+    raise ValueError("SUPABASE_SECRET_KEY is missing")
 
 supabase: Client = create_client(
     SUPABASE_URL,
-    SUPABASE_SERVICE_ROLE_KEY
+    SUPABASE_SECRET_KEY
 )

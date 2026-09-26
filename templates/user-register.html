@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Register | SarvShield AI</title>
+
+    <!-- Google Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet"
+    >
+
+    <!-- CSS -->
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='user-register.css') }}"
+    >
+
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+</head>
+
+<body>
+
+<main class="auth-page">
+
+    <section class="auth-card">
+
+        <!-- BRAND -->
+        <div class="brand-section">
+            <div class="brand-name">
+                SarvShield
+            </div>
+
+            <span class="brand-subtitle">
+                AI SECURITY
+            </span>
+        </div>
+
+
+        <!-- HEADING -->
+        <div class="auth-heading">
+
+            <span class="eyebrow">
+                CREATE ACCOUNT
+            </span>
+
+            <h1>
+                Get started with SarvShield
+            </h1>
+
+            <p>
+                Create your account and start protecting
+                yourself from digital threats.
+            </p>
+
+        </div>
+
+
+        <!-- ================= EMAIL VERIFICATION ================= -->
+
+        <div class="verification-box">
+
+            <div class="verification-title">
+                <span class="verification-icon">✉</span>
+
+                <div>
+                    <strong>Email Verification</strong>
+                    <p>Verify your email before creating your account.</p>
+                </div>
+            </div>
+
+
+            <!-- EMAIL -->
+            <div class="form-group">
+
+                <label for="email">
+                    Email Address
+                </label>
+
+                <div class="email-action">
+
+                    <input
+                        type="email"
+                        name="email"
+                        id="email"
+                        placeholder="you@example.com"
+                        autocomplete="email"
+                        maxlength="254"
+                    >
+
+                    <button
+                        type="button"
+                        id="sendOtpBtn"
+                        class="send-otp-btn"
+                    >
+                        Send OTP
+                    </button>
+
+                </div>
+
+                <small
+                    id="emailError"
+                    class="field-error"
+                ></small>
+
+            </div>
+
+
+            <!-- OTP AREA -->
+
+            <div
+                id="otpSection"
+                class="otp-section"
+                style="display:none;"
+            >
+
+                <div class="otp-label-row">
+
+                    <label for="otp">
+                        Enter OTP
+                    </label>
+
+                    <span id="otpTimer">
+                        OTP sent
+                    </span>
+
+                </div>
+
+                <div class="otp-action">
+
+                    <input
+                        type="text"
+                        id="otp"
+                        name="otp"
+                        placeholder="Enter 6-digit OTP"
+                        maxlength="6"
+                        inputmode="numeric"
+                        autocomplete="one-time-code"
+                    >
+
+                    <button
+                        type="button"
+                        id="verifyOtpBtn"
+                        class="verify-otp-btn"
+                    >
+                        Verify
+                    </button>
+
+                </div>
+
+                <small
+                    id="otpError"
+                    class="field-error"
+                ></small>
+
+            </div>
+
+
+            <!-- EMAIL RESPONSE -->
+
+            <div
+                id="otpResponse"
+                class="otp-response"
+            ></div>
+
+        </div>
+
+
+        <!-- ================= REGISTRATION FORM ================= -->
+
+        <form
+            id="userRegisterForm"
+            novalidate
+        >
+
+            <!-- NAME -->
+
+            <div class="form-group">
+
+                <label for="name">
+                    Full Name
+                </label>
+
+                <input
+                    type="text"
+                    name="name"
+                    id="name"
+                    placeholder="Enter your full name"
+                    autocomplete="name"
+                    disabled
+                >
+
+                <small
+                    id="nameError"
+                    class="field-error"
+                ></small>
+
+            </div>
+
+
+            <!-- PASSWORD -->
+
+            <div class="form-group">
+
+                <label for="password">
+                    Password
+                </label>
+
+                <div class="password-wrapper">
+
+                    <input
+                        type="password"
+                        name="password"
+                        id="password"
+                        placeholder="Create a strong password"
+                        autocomplete="new-password"
+                        disabled
+                    >
+
+                    <button
+                        type="button"
+                        class="password-toggle"
+                        id="togglePassword"
+                        disabled
+                    >
+                        Show
+                    </button>
+
+                </div>
+
+                <small
+                    id="passwordError"
+                    class="field-error"
+                ></small>
+
+            </div>
+
+
+            <!-- CONFIRM PASSWORD -->
+
+            <div class="form-group">
+
+                <label for="confirmPassword">
+                    Confirm Password
+                </label>
+
+                <div class="password-wrapper">
+
+                    <input
+                        type="password"
+                        id="confirmPassword"
+                        placeholder="Re-enter your password"
+                        autocomplete="new-password"
+                        disabled
+                    >
+
+                    <button
+                        type="button"
+                        class="password-toggle"
+                        id="toggleConfirmPassword"
+                        disabled
+                    >
+                        Show
+                    </button>
+
+                </div>
+
+                <small
+                    id="confirmPasswordError"
+                    class="field-error"
+                ></small>
+
+            </div>
+
+
+            <!-- PHONE -->
+
+            <div class="form-group">
+
+                <label for="phone">
+                    Phone Number
+                </label>
+
+                <input
+                    type="tel"
+                    name="phone"
+                    id="phone"
+                    placeholder="Enter your phone number"
+                    autocomplete="tel"
+                    inputmode="numeric"
+                    maxlength="10"
+                    disabled
+                >
+
+                <small
+                    id="phoneError"
+                    class="field-error"
+                ></small>
+
+            </div>
+
+
+            <!-- ADDRESS -->
+
+            <div class="form-group">
+
+                <label for="address">
+
+                    Address
+
+                    <span class="optional">
+                        Optional
+                    </span>
+
+                </label>
+
+                <textarea
+                    name="address"
+                    id="address"
+                    placeholder="Enter your address"
+                    autocomplete="street-address"
+                    rows="3"
+                    disabled
+                ></textarea>
+
+                <small
+                    id="addressError"
+                    class="field-error"
+                ></small>
+
+            </div>
+
+
+            <!-- RESPONSE -->
+
+            <div
+                id="registerResponse"
+                class="register-response"
+                role="alert"
+                aria-live="polite"
+            ></div>
+
+
+            <!-- REGISTER BUTTON -->
+
+            <button
+                type="submit"
+                id="registerBtn"
+                class="register-btn"
+                disabled
+            >
+
+                <span id="registerBtnText">
+                    Create Account
+                </span>
+
+                <span
+                    id="registerSpinner"
+                    class="spinner"
+                    hidden
+                ></span>
+
+            </button>
+
+        </form>
+
+
+        <!-- LOGIN LINK -->
+
+        <div class="auth-divider">
+            <span>Already have an account?</span>
+        </div>
+
+        <a
+            href="{{ url_for('login') }}"
+            class="login-link"
+        >
+            Sign in to SarvShield
+        </a>
+
+
+        <p class="security-note">
+            Your security is our priority.
+        </p>
+
+    </section>
+
+</main>
+
+
+<!-- JavaScript -->
+<script
+    src="{{ url_for('static', filename='user-register.js') }}"
+></script>
+
+</body>
+</html>
