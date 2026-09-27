@@ -1,19 +1,20 @@
 import os
+from io import BytesIO
 
 
 class FileReadError(Exception):
     """Raised when an uploaded file cannot be turned into text."""
 
 
-def extract_text(file_path):
+def extract_text(file_bytes, filename):
     """
-    Extract plain text from an uploaded file.
+    Extract plain text from uploaded file bytes.
 
     Supported:
     .txt, .md, .pdf, .docx, .jpg, .jpeg, .png
     """
 
-    ext = os.path.splitext(file_path)[1].lower()
+    ext = os.path.splitext(filename)[1].lower()
 
     try:
 
@@ -22,13 +23,10 @@ def extract_text(file_path):
         # =========================
         if ext in (".txt", ".md"):
 
-            with open(
-                file_path,
-                "r",
-                encoding="utf-8",
+            text = file_bytes.decode(
+                "utf-8",
                 errors="ignore"
-            ) as f:
-                text = f.read()
+            )
 
 
         # =========================
@@ -38,7 +36,9 @@ def extract_text(file_path):
 
             from pypdf import PdfReader
 
-            reader = PdfReader(file_path)
+            reader = PdfReader(
+                BytesIO(file_bytes)
+            )
 
             text = "\n".join(
                 (page.extract_text() or "")
@@ -53,9 +53,14 @@ def extract_text(file_path):
 
             from docx import Document
 
-            doc = Document(file_path)
+            doc = Document(
+                BytesIO(file_bytes)
+            )
 
-            parts = [p.text for p in doc.paragraphs]
+            parts = [
+                p.text
+                for p in doc.paragraphs
+            ]
 
             # Read tables
             for table in doc.tables:
@@ -78,13 +83,19 @@ def extract_text(file_path):
         elif ext in (".jpg", ".jpeg", ".png"):
 
             import cv2
+            import numpy as np
             import pytesseract
 
-            pytesseract.pytesseract.tesseract_cmd = (
-                r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+            # Convert bytes → numpy array
+            image_array = np.frombuffer(
+                file_bytes,
+                np.uint8
             )
 
-            image = cv2.imread(file_path)
+            image = cv2.imdecode(
+                image_array,
+                cv2.IMREAD_COLOR
+            )
 
             if image is None:
                 raise FileReadError(
