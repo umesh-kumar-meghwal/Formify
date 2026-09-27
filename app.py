@@ -736,7 +736,7 @@ def transform_api():
 
                 # Save Supabase storage path for database
                 file_path = storage_path
-                source_text = extract_text(file_path)
+                source_text = extract_text(file_bytes, filename)
                 print("File uploaded to Supabase:", storage_path)
             elif pasted_text and pasted_text.strip():
                 source_text = pasted_text.strip()
