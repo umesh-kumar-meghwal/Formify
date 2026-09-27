@@ -721,8 +721,27 @@ def transform_api():
 
             if uploaded_file and uploaded_file.filename != '':
                 safe_name = f"{uuid.uuid4().hex}_{secure_filename(uploaded_file.filename)}"
-                file_path = os.path.join(app.config['UPLOAD_FOLDER'], safe_name)
-                uploaded_file.save(file_path)
+
+                # Supabase Storage path
+                storage_path = f"uploads/{safe_name}"
+
+                # Upload directly to Supabase Storage
+                file_bytes = uploaded_file.read()
+
+                supabase.storage.from_("documents").upload(
+                    storage_path,
+                    file_bytes,
+                    {
+                        "content-type": uploaded_file.content_type or "application/octet-stream",
+                        "upsert": "false"
+                    }
+                )
+
+                # Optional: save path for database
+                file_path = storage_path
+
+                print("File uploaded to Supabase:", storage_path)
+                
                 source_text = extract_text(file_path)
             elif pasted_text and pasted_text.strip():
                 source_text = pasted_text.strip()
