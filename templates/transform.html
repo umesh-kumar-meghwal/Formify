@@ -331,7 +331,7 @@
         body.append("additionalInstructions", formData.additionalInstructions || "");
 
         
-        const response = await fetch("/transform", {
+        const response = await fetch("/transformations", {
           method: "POST",
           body
         });

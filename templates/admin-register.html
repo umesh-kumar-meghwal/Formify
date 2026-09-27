@@ -1,124 +1,107 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
-
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Add Admin | ScamShield Admin</title>
+    <title>Add Admin | Formify Admin</title>
 
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
-            darkMode: 'class',
             theme: {
                 extend: {
-                    colors: {
-                        brand: {
-                            50: '#eef6ff',
-                            400: '#60a5fa',
-                            500: '#3b82f6',
-                            600: '#2563eb',
-                            700: '#1d4ed8',
-                            900: '#1e3a8a',
-                        },
-                        dark: {
-                            base: '#060B13',
-                            sidebar: '#080E1A',
-                            card: '#0D1728',
-                            cardLight: '#121F36',
-                            border: '#1E293B',
-                            hover: '#182744'
-                        }
-                    },
                     fontFamily: {
-                        sans: ['Plus Jakarta Sans', 'Inter', 'sans-serif'],
+                        sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif']
+                    },
+                    colors: {
+                        formify: {
+                            50: '#EEF2FF',
+                            100: '#E0E7FF',
+                            500: '#6366F1',
+                            600: '#4F46E5',
+                            700: '#4338CA'
+                        }
                     }
                 }
             }
         }
     </script>
 
-    <!-- Google Fonts & FontAwesome Icons -->
+    <!-- Google Font: Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
     <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; }
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: #060B13; }
-        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #334155; }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-thumb { background-color: #D0D5DD; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background-color: #98A2B3; }
+        ::-webkit-scrollbar-track { background: transparent; }
     </style>
 </head>
 
-<body class="bg-dark-base text-slate-100 flex min-h-screen overflow-x-hidden antialiased relative">
+<body class="min-h-screen bg-[#F7F8FA] font-sans text-[#172033] antialiased flex">
 
     <!-- =====================================================
          MOBILE BACKDROP OVERLAY
     ===================================================== -->
-    <div id="sidebarBackdrop" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-40 hidden md:hidden transition-opacity"></div>
+    <div id="sidebarBackdrop" class="fixed inset-0 bg-[#101828]/40 backdrop-blur-sm z-40 hidden md:hidden transition-opacity"></div>
 
     <!-- =====================================================
          ADMIN SIDEBAR NAVIGATION
     ===================================================== -->
-    <aside id="sidebar" class="fixed inset-y-0 left-0 z-50 w-72 md:w-64 bg-dark-sidebar border-r border-dark-border flex flex-col justify-between shrink-0 transform -translate-x-full md:translate-x-0 md:static transition-transform duration-300 ease-in-out">
+    <aside id="sidebar" class="fixed inset-y-0 left-0 z-50 w-72 md:w-60 bg-white border-r border-[#E4E7EC] flex flex-col justify-between shrink-0 transform -translate-x-full md:translate-x-0 md:static transition-transform duration-300 ease-in-out">
         <div>
-            <!-- Brand Logo & Close Button -->
-            <div class="h-20 flex items-center justify-between px-6 border-b border-dark-border/60">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-blue-600/20 border border-blue-500/30 flex items-center justify-center text-blue-500 text-lg shadow-inner">
-                        <i class="fa-solid fa-shield-halved"></i>
-                    </div>
-                    <div>
-                        <h2 class="font-extrabold text-base tracking-tight text-white leading-none">ScamShield</h2>
-                        <span class="text-[10px] tracking-widest uppercase font-bold text-amber-400">Admin Control</span>
-                    </div>
-                </div>
-
-                <button id="closeSidebarBtn" class="md:hidden text-slate-400 hover:text-white p-1 rounded-lg focus:outline-none" aria-label="Close Sidebar">
+            <!-- Logo -->
+            <div class="h-16 flex items-center justify-between px-5 border-b border-[#E4E7EC]">
+                <a href="/admin-dashboard" class="text-[19px] font-semibold tracking-[-0.02em] text-[#172033]">
+                    Formify
+                </a>
+                <button id="closeSidebarBtn" class="md:hidden text-[#98A2B3] hover:text-[#172033] p-1 rounded-lg focus:outline-none" aria-label="Close Sidebar">
                     <i class="fa-solid fa-xmark text-lg"></i>
                 </button>
             </div>
 
             <!-- Navigation Links -->
-            <nav class="p-4 space-y-1.5 text-sm font-medium sidebar-nav">
-                <a href="/admin-dashboard" class="flex items-center gap-3.5 px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-dark-hover transition">
-                    <i class="fa-solid fa-gauge-high w-5 text-slate-400"></i>
+            <nav class="p-3 space-y-1 text-[13px] font-medium sidebar-nav">
+                <a href="/admin-dashboard" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[#667085] hover:text-[#172033] hover:bg-[#F2F4F7] transition">
+                    <i class="fa-solid fa-grip w-4 text-[#98A2B3]"></i>
                     <span>Dashboard</span>
                 </a>
 
-                <a href="/user-show" class="flex items-center gap-3.5 px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-dark-hover transition">
-                    <i class="fa-solid fa-users w-5 text-slate-400"></i>
+                <a href="/user-show" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[#667085] hover:text-[#172033] hover:bg-[#F2F4F7] transition">
+                    <i class="fa-solid fa-users w-4 text-[#98A2B3]"></i>
                     <span>Manage Users</span>
                 </a>
 
-                <a href="/admin-show" class="flex items-center gap-3.5 px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-dark-hover transition">
-                    <i class="fa-solid fa-user-shield w-5 text-slate-400"></i>
+                <a href="/transformations" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[#667085] hover:text-[#172033] hover:bg-[#F2F4F7] transition">
+                    <i class="fa-solid fa-wand-magic-sparkles w-4 text-[#98A2B3]"></i>
+                    <span>Transformations</span>
+                </a>
+
+                <a href="/admin-show" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[#667085] hover:text-[#172033] hover:bg-[#F2F4F7] transition">
+                    <i class="fa-solid fa-user-shield w-4 text-[#98A2B3]"></i>
                     <span>Show Admins</span>
                 </a>
 
                 <!-- Add Admin Active -->
-                <a href="/admin-register" class="flex items-center gap-3.5 px-4 py-3 rounded-xl bg-amber-500/15 text-amber-400 border border-amber-500/20 font-semibold shadow-sm transition">
-                    <i class="fa-solid fa-user-plus w-5 text-amber-400"></i>
+                <a href="/admin-register" class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-[#FFFAEB] text-[#B54708] font-semibold transition">
+                    <i class="fa-solid fa-user-plus w-4 text-[#B54708]"></i>
                     <span>Add Admin</span>
                 </a>
 
-                <a href="/feedbacks" class="flex items-center gap-3.5 px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-dark-hover transition">
-                    <i class="fa-regular fa-comments w-5 text-slate-400"></i>
-                    <span>User Feedback</span>
-                </a>
+                
             </nav>
         </div>
 
         <!-- Sidebar Bottom Logout -->
-        <div class="p-4 border-t border-dark-border/60 space-y-2">
-            <a href="/logout" class="flex items-center gap-3.5 px-4 py-2.5 rounded-xl text-rose-400 hover:bg-rose-500/10 text-xs font-semibold transition">
+        <div class="p-3 border-t border-[#E4E7EC] space-y-2">
+            <a href="/logout" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[#B42318] hover:bg-[#FEF3F2] text-[13px] font-medium transition">
                 <i class="fa-solid fa-arrow-right-from-bracket w-4"></i>
                 <span>Logout</span>
             </a>
@@ -131,46 +114,43 @@
     <div class="flex-1 flex flex-col min-w-0 w-full" id="pageWrapper">
 
         <!-- Responsive Top Bar Header -->
-        <header class="h-20 border-b border-dark-border flex items-center justify-between px-4 sm:px-6 lg:px-10 bg-dark-base/90 backdrop-blur sticky top-0 z-30">
+        <header class="sticky top-0 z-30 h-16 border-b border-[#E4E7EC] bg-white/95 backdrop-blur flex items-center justify-between px-5 sm:px-8">
             <div class="flex items-center gap-3">
-                <button id="mobileMenuBtn" class="md:hidden w-10 h-10 rounded-xl bg-dark-card border border-dark-border text-slate-300 hover:text-white flex items-center justify-center focus:outline-none active:scale-95 transition" aria-label="Open Navigation">
-                    <i class="fa-solid fa-bars-staggered text-base"></i>
+                <button id="mobileMenuBtn" class="md:hidden w-9 h-9 rounded-lg border border-[#E4E7EC] text-[#667085] hover:text-[#172033] hover:bg-[#F2F4F7] flex items-center justify-center focus:outline-none transition" aria-label="Open Navigation">
+                    <i class="fa-solid fa-bars-staggered text-sm"></i>
                 </button>
 
                 <div class="flex items-center gap-2">
-                    <span class="text-xs uppercase font-bold tracking-widest text-slate-400">SCAMSHIELD</span>
-                    <span class="text-slate-600 hidden xs:inline">/</span>
-                    <a href="/admin-dashboard" class="text-slate-400 hover:text-white text-xs uppercase font-bold hidden sm:inline">Admin</a>
-                    <span class="text-slate-600 hidden sm:inline">/</span>
-                    <span class="text-sm font-semibold text-white truncate">Add Admin</span>
+                    <a href="/admin-dashboard" class="text-[#98A2B3] hover:text-[#172033] text-[11px] uppercase font-semibold tracking-[0.08em] hidden sm:inline transition">Admin</a>
+                    <span class="text-[#D0D5DD] hidden sm:inline">/</span>
+                    <span class="text-[15px] font-semibold text-[#172033] truncate">Add Admin</span>
                 </div>
             </div>
 
-            <div class="flex items-center gap-3 sm:gap-6 text-xs sm:text-sm font-medium">
-                <a href="/admin-show" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-dark-card border border-dark-border hover:bg-dark-hover text-slate-300 hover:text-white text-xs font-bold transition">
-                    <i class="fa-solid fa-user-shield text-[10px] text-amber-400"></i> View Admins
+            <div class="flex items-center gap-3 text-xs sm:text-sm font-medium">
+                <a href="/admin-show" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-[#D0D5DD] hover:bg-[#F9FAFB] text-[#344054] text-[13px] font-semibold transition">
+                    <i class="fa-solid fa-user-shield text-[11px] text-[#B54708]"></i> View Admins
                 </a>
             </div>
         </header>
 
         <!-- Main Content Area -->
-        <main class="flex-1 p-4 sm:p-6 lg:p-10 max-w-4xl mx-auto w-full space-y-8 sm:space-y-10">
+        <main class="flex-1 px-5 py-7 sm:px-8 lg:py-9 max-w-3xl mx-auto w-full space-y-8">
 
             <!-- Hero Banner -->
-            <section class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#1b1c3a] via-[#14182e] to-[#0a1324] border border-amber-500/20 p-6 sm:p-8 lg:p-12 shadow-2xl">
-                <div class="absolute -right-16 -top-16 w-80 sm:w-96 h-80 sm:h-96 rounded-full bg-amber-500/10 blur-3xl pointer-events-none"></div>
+            <section class="relative overflow-hidden rounded-2xl bg-white border border-[#E4E7EC] p-6 sm:p-8 lg:p-10 shadow-[0_2px_8px_rgba(16,24,40,0.03)]">
 
-                <div class="relative z-10 max-w-2xl space-y-3">
-                    <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] sm:text-[11px] font-bold tracking-widest uppercase bg-amber-500/20 text-amber-400 border border-amber-400/30">
-                        <i class="fa-solid fa-crown text-xs"></i> PRIVILEGE ELEVATION
+                <div class="max-w-2xl space-y-3">
+                    <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[11px] font-semibold tracking-wide uppercase bg-[#FFFAEB] text-[#B54708] border border-[#FEDF89]">
+                        <i class="fa-solid fa-crown text-xs"></i> Privilege elevation
                     </span>
 
-                    <h1 class="text-2xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight leading-tight">
+                    <h1 class="text-2xl sm:text-3xl lg:text-[32px] font-semibold text-[#172033] tracking-[-0.02em] leading-tight">
                         Add New Admin
                     </h1>
 
-                    <p class="text-slate-300 text-xs sm:text-sm lg:text-base leading-relaxed">
-                        Create a privileged security administrator account with access to threat intelligence, scam verification engines, and client databases.
+                    <p class="text-[#667085] text-[13px] sm:text-[14px] leading-relaxed">
+                        Create a privileged administrator account with access to user management, content transformation activity, and platform settings.
                     </p>
                 </div>
             </section>
@@ -178,21 +158,21 @@
             <!-- =====================================================
                  ADMIN REGISTRATION FORM CARD
             ===================================================== -->
-            <div class="rounded-3xl border border-dark-border bg-dark-card p-6 sm:p-8 lg:p-10 shadow-xl space-y-6">
-                <div class="border-b border-dark-border pb-4">
-                    <h2 class="text-xl font-bold text-white tracking-tight">Administrator Credentials</h2>
-                    <p class="text-xs text-slate-400 mt-0.5">Please provide accurate contact details and a strong password.</p>
+            <div class="rounded-2xl border border-[#E4E7EC] bg-white p-6 sm:p-8 lg:p-9 shadow-[0_2px_8px_rgba(16,24,40,0.03)] space-y-6">
+                <div class="border-b border-[#E4E7EC] pb-4">
+                    <h2 class="text-[18px] font-semibold text-[#172033] tracking-[-0.01em]">Administrator Credentials</h2>
+                    <p class="text-[12px] text-[#667085] mt-0.5">Please provide accurate contact details and a strong password.</p>
                 </div>
 
-                <form id="adminRegisterForm" class="space-y-5 sm:space-y-6">
-                    
+                <form id="adminRegisterForm" class="space-y-5">
+
                     <!-- Full Name -->
-                    <div class="space-y-2">
-                        <label class="block text-xs uppercase tracking-wider font-bold text-slate-300" for="name">
-                            <i class="fa-regular fa-user text-amber-400 mr-1.5"></i> Full Name <span class="text-rose-400">*</span>
+                    <div class="space-y-1.5">
+                        <label class="block text-[12px] font-semibold text-[#344054]" for="name">
+                            <i class="fa-regular fa-user text-[#B54708] mr-1"></i> Full Name <span class="text-[#B42318]">*</span>
                         </label>
                         <input
-                            class="w-full rounded-xl bg-dark-cardLight border border-dark-border px-4 py-3 text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 transition"
+                            class="w-full rounded-xl bg-white border border-[#D0D5DD] px-4 py-2.5 text-[13px] text-[#172033] placeholder-[#98A2B3] outline-none focus:border-[#6366F1] focus:ring-4 focus:ring-[#EEF2FF] transition"
                             type="text"
                             name="name"
                             id="name"
@@ -202,27 +182,27 @@
                     </div>
 
                     <!-- Email Address -->
-                    <div class="space-y-2">
-                        <label class="block text-xs uppercase tracking-wider font-bold text-slate-300" for="email">
-                            <i class="fa-regular fa-envelope text-amber-400 mr-1.5"></i> Email Address <span class="text-rose-400">*</span>
+                    <div class="space-y-1.5">
+                        <label class="block text-[12px] font-semibold text-[#344054]" for="email">
+                            <i class="fa-regular fa-envelope text-[#B54708] mr-1"></i> Email Address <span class="text-[#B42318]">*</span>
                         </label>
                         <input
-                            class="w-full rounded-xl bg-dark-cardLight border border-dark-border px-4 py-3 text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 transition font-mono"
+                            class="w-full rounded-xl bg-white border border-[#D0D5DD] px-4 py-2.5 text-[13px] font-mono text-[#172033] placeholder-[#98A2B3] outline-none focus:border-[#6366F1] focus:ring-4 focus:ring-[#EEF2FF] transition"
                             type="email"
                             name="email"
                             id="email"
-                            placeholder="admin@scamshield.org"
+                            placeholder="admin@formify.com"
                             required
                         >
                     </div>
 
                     <!-- Phone Number -->
-                    <div class="space-y-2">
-                        <label class="block text-xs uppercase tracking-wider font-bold text-slate-300" for="phone">
-                            <i class="fa-solid fa-phone text-amber-400 mr-1.5"></i> Phone Number <span class="text-rose-400">*</span>
+                    <div class="space-y-1.5">
+                        <label class="block text-[12px] font-semibold text-[#344054]" for="phone">
+                            <i class="fa-solid fa-phone text-[#B54708] mr-1"></i> Phone Number <span class="text-[#B42318]">*</span>
                         </label>
                         <input
-                            class="w-full rounded-xl bg-dark-cardLight border border-dark-border px-4 py-3 text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 transition font-mono"
+                            class="w-full rounded-xl bg-white border border-[#D0D5DD] px-4 py-2.5 text-[13px] font-mono text-[#172033] placeholder-[#98A2B3] outline-none focus:border-[#6366F1] focus:ring-4 focus:ring-[#EEF2FF] transition"
                             type="text"
                             name="phone"
                             id="phone"
@@ -232,32 +212,32 @@
                     </div>
 
                     <!-- Password with Show/Hide -->
-                    <div class="space-y-2">
-                        <label class="block text-xs uppercase tracking-wider font-bold text-slate-300" for="password">
-                            <i class="fa-solid fa-lock text-amber-400 mr-1.5"></i> Admin Password <span class="text-rose-400">*</span>
+                    <div class="space-y-1.5">
+                        <label class="block text-[12px] font-semibold text-[#344054]" for="password">
+                            <i class="fa-solid fa-lock text-[#B54708] mr-1"></i> Admin Password <span class="text-[#B42318]">*</span>
                         </label>
                         <div class="relative">
                             <input
-                                class="w-full rounded-xl bg-dark-cardLight border border-dark-border px-4 py-3 pr-11 text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 transition"
+                                class="w-full rounded-xl bg-white border border-[#D0D5DD] px-4 py-2.5 pr-11 text-[13px] text-[#172033] placeholder-[#98A2B3] outline-none focus:border-[#6366F1] focus:ring-4 focus:ring-[#EEF2FF] transition"
                                 type="password"
                                 name="password"
                                 id="password"
                                 placeholder="Create strong admin password"
                                 required
                             >
-                            <button type="button" class="toggle-pass absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 text-xs focus:outline-none">
+                            <button type="button" class="toggle-pass absolute right-3.5 top-1/2 -translate-y-1/2 text-[#98A2B3] hover:text-[#667085] text-xs focus:outline-none">
                                 <i class="fa-regular fa-eye"></i>
                             </button>
                         </div>
                     </div>
 
                     <!-- Address -->
-                    <div class="space-y-2">
-                        <label class="block text-xs uppercase tracking-wider font-bold text-slate-300" for="address">
-                            <i class="fa-solid fa-location-dot text-amber-400 mr-1.5"></i> Office / Official Address <span class="text-rose-400">*</span>
+                    <div class="space-y-1.5">
+                        <label class="block text-[12px] font-semibold text-[#344054]" for="address">
+                            <i class="fa-solid fa-location-dot text-[#B54708] mr-1"></i> Office / Official Address <span class="text-[#B42318]">*</span>
                         </label>
                         <textarea
-                            class="w-full rounded-xl bg-dark-cardLight border border-dark-border px-4 py-3 text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 transition resize-none"
+                            class="w-full rounded-xl bg-white border border-[#D0D5DD] px-4 py-2.5 text-[13px] leading-6 text-[#172033] placeholder-[#98A2B3] outline-none focus:border-[#6366F1] focus:ring-4 focus:ring-[#EEF2FF] transition resize-y"
                             name="address"
                             id="address"
                             rows="4"
@@ -271,14 +251,14 @@
                         <button
                             type="submit"
                             id="registerBtn"
-                            class="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-gradient-to-r from-amber-600 to-rose-600 hover:from-amber-500 hover:to-rose-500 text-white font-bold text-xs sm:text-sm shadow-lg shadow-amber-600/20 transition transform active:scale-95 flex items-center justify-center gap-2 disabled:opacity-60"
+                            class="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-[#4F46E5] hover:bg-[#4338CA] text-white font-semibold text-[13px] shadow-sm transition transform active:scale-95 flex items-center justify-center gap-2 disabled:opacity-60"
                         >
                             <i class="fa-solid fa-user-plus"></i> Register Administrator
                         </button>
 
                         <a
                             href="/admin-show"
-                            class="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-dark-cardLight border border-dark-border hover:bg-dark-hover text-slate-300 hover:text-white font-semibold text-xs sm:text-sm text-center transition"
+                            class="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-white border border-[#D0D5DD] hover:bg-[#F9FAFB] text-[#344054] font-medium text-[13px] text-center transition"
                         >
                             Cancel
                         </a>
@@ -294,9 +274,9 @@
         </main>
 
         <!-- Footer -->
-        <footer class="border-t border-dark-border/60 py-6 px-4 sm:px-6 lg:px-10 text-xs text-slate-500 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
-            <span>© 2026 ScamShield. Administrator Control Center.</span>
-            <span>Stay aware. Stay protected.</span>
+        <footer class="border-t border-[#E4E7EC] py-5 px-5 sm:px-8 text-[11px] text-[#98A2B3] flex flex-col sm:flex-row items-center justify-between gap-2 text-center sm:text-left">
+            <span>© 2026 Formify. Admin Control Center.</span>
+            <span>One source. Every audience.</span>
         </footer>
 
     </div>
@@ -306,7 +286,7 @@
     ===================================================== -->
     <script>
         $(document).ready(function () {
-            
+
             // --- Mobile Drawer Toggle Logic ---
             function openMobileSidebar() {
                 $('#sidebar').removeClass('-translate-x-full');
@@ -342,10 +322,10 @@
 
                 if (input.attr('type') === 'password') {
                     input.attr('type', 'text');
-                    icon.removeClass('fa-eye').addClass('fa-eye-slash text-amber-400');
+                    icon.removeClass('fa-eye').addClass('fa-eye-slash text-[#4F46E5]');
                 } else {
                     input.attr('type', 'password');
-                    icon.removeClass('fa-eye-slash text-amber-400').addClass('fa-eye text-slate-500');
+                    icon.removeClass('fa-eye-slash text-[#4F46E5]').addClass('fa-eye text-[#98A2B3]');
                 }
             });
 
@@ -364,7 +344,7 @@
                     success: function(response) {
                         const msg = response.message || "Administrator account created successfully!";
                         $("#registerResponse").html(`
-                            <div class="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs sm:text-sm flex items-center gap-2.5">
+                            <div class="p-3.5 rounded-xl bg-[#ECFDF3] border border-[#ABEFC6] text-[#027A48] text-[13px] flex items-center gap-2.5">
                                 <i class="fa-solid fa-circle-check text-base shrink-0"></i>
                                 <span>${msg}</span>
                             </div>
@@ -377,7 +357,7 @@
                             message = xhr.responseJSON.message;
                         }
                         $("#registerResponse").html(`
-                            <div class="p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs sm:text-sm flex items-center gap-2.5">
+                            <div class="p-3.5 rounded-xl bg-[#FEF3F2] border border-[#FECDCA] text-[#B42318] text-[13px] flex items-center gap-2.5">
                                 <i class="fa-solid fa-triangle-exclamation text-base shrink-0"></i>
                                 <span>${message}</span>
                             </div>

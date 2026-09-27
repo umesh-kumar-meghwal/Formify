@@ -274,9 +274,9 @@ def home_page():
     user_data = user_resp.data or {"email": user_email}
 
     # 2. Fetch Real Trust Metrics from Supabase
-    trust_stats = get_user_real_trust_metrics(user_email)
+    
 
-    return render_template('home.html', data=user_data, stats=trust_stats)
+    return render_template('home.html', data=user_data)
 
     
 
@@ -710,9 +710,9 @@ def admin_register():
 
 
 
-@app.route('/transform', methods=["POST","GET"])
+@app.route('/transformations', methods=["POST","GET"])
 def transform_api():
-    if "email" in session and session.get("usertype") == "admin":
+    if "email" in session and session.get("usertype") == "admin" or session.get("usertype") == "user":
         if request.method == "POST":       
             try:
                 uploaded_file = request.files.get('sourceFile')
