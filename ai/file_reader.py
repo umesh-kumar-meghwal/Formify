@@ -1,10 +1,79 @@
 import os
-import time
 from io import BytesIO
 
 
 class FileReadError(Exception):
     """Raised when an uploaded file cannot be turned into text."""
+
+
+# ---------------------------------------------------------------------------
+# OCR settings (optional, via .env)
+#   TESSERACT_CMD = C:\Program Files\Tesseract-OCR\tesseract.exe   (Windows only)
+#   OCR_LANGS     = eng            (default)  |  eng+hin  (English + Hindi)
+# ---------------------------------------------------------------------------
+OCR_LANGS = os.getenv("OCR_LANGS", "eng")
+TESSERACT_CMD = os.getenv("TESSERACT_CMD")
+
+
+def _ocr_image(file_bytes):
+    """
+    Extract text from an image using pytesseract (local, free, no API).
+    """
+    try:
+        import pytesseract
+        from PIL import Image, ImageOps
+    except ImportError:
+        raise FileReadError(
+            "OCR libraries are missing. Run: pip install pytesseract pillow"
+        )
+
+    if TESSERACT_CMD:
+        pytesseract.pytesseract.tesseract_cmd = TESSERACT_CMD
+
+    try:
+        img = Image.open(BytesIO(file_bytes))
+
+        # Fix phone-camera rotation (EXIF)
+        img = ImageOps.exif_transpose(img)
+
+        # Handle transparent PNGs -> white background
+        if img.mode in ("RGBA", "LA", "P"):
+            img = img.convert("RGBA")
+            background = Image.new("RGB", img.size, (255, 255, 255))
+            background.paste(img, mask=img.split()[-1])
+            img = background
+        else:
+            img = img.convert("RGB")
+
+        # Upscale small images (OCR works better on bigger text)
+        min_width = 1500
+        if img.width < min_width:
+            scale = min_width / img.width
+            img = img.resize(
+                (int(img.width * scale), int(img.height * scale)),
+                Image.LANCZOS,
+            )
+
+        # Grayscale + auto contrast improves accuracy
+        img = ImageOps.grayscale(img)
+        img = ImageOps.autocontrast(img)
+
+        # --oem 3 = default engine, --psm 3 = fully automatic page segmentation
+        return pytesseract.image_to_string(
+            img,
+            lang=OCR_LANGS,
+            config="--oem 3 --psm 3",
+        )
+
+    except pytesseract.TesseractNotFoundError:
+        raise FileReadError(
+            "Tesseract OCR engine is not installed on the server. "
+            "Install it and (on Windows) set TESSERACT_CMD in .env."
+        )
+    except pytesseract.TesseractError as e:
+        raise FileReadError(
+            f"OCR failed (check OCR_LANGS / language pack): {e}"
+        )
 
 
 def extract_text(file_bytes, filename):
@@ -73,91 +142,11 @@ def extract_text(file_bytes, filename):
             text = "\n".join(parts)
 
         # =========================
-        # IMAGE OCR - GEMINI VISION
+        # IMAGE OCR - PYTESSERACT
         # =========================
         elif ext in (".jpg", ".jpeg", ".png"):
 
-            from google import genai
-            from google.genai import types
-
-            api_key = os.getenv("GEMINI_API_KEY")
-
-            if not api_key:
-                raise FileReadError(
-                    "GEMINI_API_KEY is not configured."
-                )
-
-            client = genai.Client(
-                api_key=api_key
-            )
-
-            if ext in (".jpg", ".jpeg"):
-                mime_type = "image/jpeg"
-            else:
-                mime_type = "image/png"
-
-            prompt = """
-Extract all readable text from this image.
-
-Rules:
-- Return ONLY the extracted text.
-- Preserve the original wording.
-- Preserve paragraphs and line breaks.
-- Do not summarize.
-- Do not explain the image.
-- Do not add information that is not visible.
-- If there is no readable text, return an empty response.
-"""
-
-            max_attempts = 3
-            text = ""
-
-            for attempt in range(max_attempts):
-
-                try:
-
-                    response = client.models.generate_content(
-                        model="gemini-3.8-flash",
-                        contents=[
-                            types.Part.from_bytes(
-                                data=file_bytes,
-                                mime_type=mime_type
-                            ),
-                            prompt
-                        ]
-                    )
-
-                    text = response.text or ""
-                    break
-
-                except Exception as e:
-
-                    error_message = str(e).upper()
-
-                    temporary_error = (
-                        "503" in error_message
-                        or "UNAVAILABLE" in error_message
-                        or "429" in error_message
-                        or "RESOURCE_EXHAUSTED" in error_message
-                    )
-
-                    if temporary_error and attempt < max_attempts - 1:
-
-                        wait_time = 2 ** (attempt + 1)
-
-                        print(
-                            f"Gemini temporarily unavailable. "
-                            f"Retrying in {wait_time}s..."
-                        )
-
-                        time.sleep(wait_time)
-
-                    else:
-                        raise FileReadError(
-                            "Gemini OCR is temporarily unavailable. "
-                            "Please try uploading the image again "
-                            "after a few seconds."
-                        )
+            text = _ocr_image(file_bytes)
 
         # =========================
         # UNSUPPORTED FILE
