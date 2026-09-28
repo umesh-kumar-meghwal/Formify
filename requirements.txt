@@ -9,3 +9,4 @@ python-pptx
 pytesseract
 opencv-python
 supabase
+opencv-python
