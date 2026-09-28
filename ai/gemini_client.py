@@ -14,12 +14,30 @@ if not API_KEY:
 
 client = genai.Client(api_key=API_KEY)
 
-MODEL_NAME = "gemini-3.8-flash"
+# ---------------------------------------------------------------------------
+# Models are tried in this order. If one is overloaded (503), out of quota
+# (429) or not found (404), the next one is tried automatically.
+# Override from Vercel / .env without touching code:
+#   GEMINI_MODELS=gemini-3.8-flash,gemini-2.5-flash,gemini-2.5-flash-lite
+# (check https://ai.dev/rate-limit for models available on your key)
+# ---------------------------------------------------------------------------
+DEFAULT_MODELS = "gemini-3.8-flash,gemini-2.5-flash,gemini-2.5-flash-lite"
 
-# 503 (model overloaded) is temporary. Retry a few times with a short
-# backoff before giving up, instead of failing the whole request.
-MAX_RETRIES = 3
-RETRY_DELAY_SECONDS = 5
+MODELS = [
+    m.strip()
+    for m in os.getenv("GEMINI_MODELS", DEFAULT_MODELS).split(",")
+    if m.strip()
+]
+
+# Full passes over the model list before giving up (keep small: Vercel has
+# a function time limit).
+MAX_ROUNDS = 2
+ROUND_DELAY_SECONDS = 3
+
+# After a model fails with 503/429, skip it for this long so the next
+# requests do not waste calls (and quota) on it.
+COOLDOWN_SECONDS = 60
+_cooldown_until = {}
 
 
 def _clean_json_text(text):
@@ -41,32 +59,53 @@ def _clean_json_text(text):
     return text.strip()
 
 
+def _available_models():
+    """Models not in cooldown. If all are cooling down, try all anyway."""
+    now = time.time()
+    ready = [m for m in MODELS if _cooldown_until.get(m, 0) <= now]
+    return ready or list(MODELS)
+
+
 def generate_with_gemini(prompt: str) -> str:
     last_error = None
 
-    for attempt in range(1, MAX_RETRIES + 1):
-        try:
-            response = client.models.generate_content(
-                model=MODEL_NAME,
-                contents=prompt,
-                config=types.GenerateContentConfig(
-                    response_mime_type="application/json",
-                ),
-            )
-            return _clean_json_text(response.text)
+    for round_no in range(1, MAX_ROUNDS + 1):
 
-        except genai_errors.ServerError as e:
-            # 503 / 500-range: model overloaded or temporary server issue.
-            last_error = e
-            print(f"Gemini server error (attempt {attempt}/{MAX_RETRIES}): {e}")
+        for model in _available_models():
+            try:
+                response = client.models.generate_content(
+                    model=model,
+                    contents=prompt,
+                    config=types.GenerateContentConfig(
+                        response_mime_type="application/json",
+                        automatic_function_calling=types.AutomaticFunctionCallingConfig(
+                            disable=True
+                        ),
+                    ),
+                )
+                return _clean_json_text(response.text)
 
-            if attempt < MAX_RETRIES:
-                time.sleep(RETRY_DELAY_SECONDS)
+            except genai_errors.ServerError as e:
+                # 500 / 503: overloaded or temporary server issue
+                last_error = e
+                _cooldown_until[model] = time.time() + COOLDOWN_SECONDS
+                print(f"[GEMINI] {model} server error, trying next model: {e}")
 
-        except genai_errors.ClientError as e:
-            # 4xx: bad request, invalid key, quota, etc. Retrying won't help.
-            raise
+            except genai_errors.ClientError as e:
+                code = getattr(e, "code", None)
 
-    # All retries used up — surface the last error so the caller
-    # (pipeline.py) records it in the validation issues.
+                # 429 = quota, 404 = model name not available for this key
+                if code in (429, 404):
+                    last_error = e
+                    _cooldown_until[model] = time.time() + COOLDOWN_SECONDS
+                    print(f"[GEMINI] {model} unavailable ({code}), trying next model")
+                    continue
+
+                # 400 / 401 / 403: bad request or key problem, retrying won't help
+                raise
+
+        if round_no < MAX_ROUNDS:
+            time.sleep(ROUND_DELAY_SECONDS)
+
+    # Every model failed - surface the last error so pipeline.py records it
     raise last_error
