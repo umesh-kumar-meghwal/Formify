@@ -61,11 +61,8 @@ def extract_text(file_bytes, filename):
                 for p in doc.paragraphs
             ]
 
-            # Read tables
             for table in doc.tables:
-
                 for row in table.rows:
-
                     parts.append(
                         " | ".join(
                             cell.text
@@ -76,8 +73,7 @@ def extract_text(file_bytes, filename):
             text = "\n".join(parts)
 
         # =========================
-        # IMAGE OCR
-        # Gemini Vision
+        # IMAGE OCR - GEMINI VISION
         # =========================
         elif ext in (".jpg", ".jpeg", ".png"):
 
@@ -113,12 +109,8 @@ Rules:
 - If there is no readable text, return an empty response.
 """
 
-            text = ""
-
-            # =========================
-            # RETRY GEMINI OCR
-            # =========================
             max_attempts = 3
+            text = ""
 
             for attempt in range(max_attempts):
 
@@ -136,37 +128,36 @@ Rules:
                     )
 
                     text = response.text or ""
-
-                    # Success
-                    if text.strip():
-                        break
+                    break
 
                 except Exception as e:
 
-                    error_message = str(e)
+                    error_message = str(e).upper()
 
-                    is_temporary_error = (
+                    temporary_error = (
                         "503" in error_message
                         or "UNAVAILABLE" in error_message
                         or "429" in error_message
                         or "RESOURCE_EXHAUSTED" in error_message
                     )
 
-                    if not is_temporary_error:
-                        raise
+                    if temporary_error and attempt < max_attempts - 1:
 
-                    # Last attempt
-                    if attempt == max_attempts - 1:
+                        wait_time = 2 ** (attempt + 1)
+
+                        print(
+                            f"Gemini temporarily unavailable. "
+                            f"Retrying in {wait_time}s..."
+                        )
+
+                        time.sleep(wait_time)
+
+                    else:
                         raise FileReadError(
                             "Gemini OCR is temporarily unavailable. "
                             "Please try uploading the image again "
                             "after a few seconds."
                         )
-
-                    # Exponential backoff:
-                    # 2 sec → 4 sec
-                    wait_time = 2 ** (attempt + 1)
-                    time.sleep(wait_time)
 
         # =========================
         # UNSUPPORTED FILE
@@ -188,14 +179,8 @@ Rules:
             f"Could not read the uploaded file: {e}"
         )
 
-    # =========================
-    # CLEAN TEXT
-    # =========================
     text = text.strip()
 
-    # =========================
-    # NO TEXT FOUND
-    # =========================
     if not text:
 
         raise FileReadError(

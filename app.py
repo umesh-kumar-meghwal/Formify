@@ -706,10 +706,6 @@ def admin_register():
 
 
 
-
-
-
-
 @app.route('/transformations', methods=["POST","GET"])
 def transform_api():
     if request.method == "POST":       
@@ -720,7 +716,11 @@ def transform_api():
             source_text = ""
 
             if uploaded_file and uploaded_file.filename != '':
-                safe_name = f"{uuid.uuid4().hex}_{secure_filename(uploaded_file.filename)}"
+
+                safe_name = (
+                    f"{uuid.uuid4().hex}_"
+                    f"{secure_filename(uploaded_file.filename)}"
+                )
 
                 # Supabase Storage path
                 storage_path = f"uploads/{safe_name}"
@@ -728,20 +728,27 @@ def transform_api():
                 # Read file into memory
                 file_bytes = uploaded_file.read()
 
-                # Extract text directly from file bytes
+                # Extract text ONLY ONCE
                 source_text = extract_text(
                     file_bytes,
                     uploaded_file.filename
                 )
 
-                # Save Supabase storage path for database
+                # Save storage path for database
                 filename = storage_path
-                source_text = extract_text(file_bytes, filename)
-                print("File uploaded to Supabase:", storage_path)
+
+                print("File processed:", uploaded_file.filename)
+                print("Storage path:", storage_path)
+
             elif pasted_text and pasted_text.strip():
+
                 source_text = pasted_text.strip()
+
             else:
-                return jsonify({'error': 'No source content or file provided'}), 400
+
+                return jsonify({
+                    'error': 'No source content or file provided'
+                }), 400
 
             params = {
                 'output_types': request.form.getlist('output_types'),
