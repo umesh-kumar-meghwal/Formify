@@ -15,7 +15,78 @@ OCR_LANGS = os.getenv("OCR_LANGS", "eng")
 TESSERACT_CMD = os.getenv("TESSERACT_CMD")
 
 
-def _ocr_image(file_bytes):
+def _ocr_gemini(file_bytes, ext):
+    """
+    Fallback OCR using Gemini Vision (used when pytesseract is not available,
+    e.g. on Vercel).
+    """
+    import time
+    from google import genai
+    from google.genai import types
+
+    api_key = os.getenv("GEMINI_API_KEY")
+    if not api_key:
+        raise FileReadError("GEMINI_API_KEY is not configured.")
+
+    client = genai.Client(api_key=api_key)
+    mime_type = "image/jpeg" if ext in (".jpg", ".jpeg") else "image/png"
+    model = os.getenv("GEMINI_OCR_MODEL", "gemini-3.8-flash")
+
+    prompt = (
+        "Extract all readable text from this image.\n"
+        "Rules:\n"
+        "- Return ONLY the extracted text.\n"
+        "- Preserve the original wording, paragraphs and line breaks.\n"
+        "- Do not summarize or explain the image.\n"
+        "- If there is no readable text, return an empty response."
+    )
+
+    max_attempts = 3
+    for attempt in range(max_attempts):
+        try:
+            response = client.models.generate_content(
+                model=model,
+                contents=[
+                    types.Part.from_bytes(data=file_bytes, mime_type=mime_type),
+                    prompt,
+                ],
+            )
+            return response.text or ""
+        except Exception as e:
+            msg = str(e).upper()
+            temporary = any(
+                k in msg for k in ("503", "UNAVAILABLE", "429", "RESOURCE_EXHAUSTED")
+            )
+            if temporary and attempt < max_attempts - 1:
+                time.sleep(2 ** (attempt + 1))
+            else:
+                raise FileReadError(
+                    "OCR is temporarily unavailable. "
+                    "Please try uploading the image again after a few seconds."
+                )
+
+
+def _ocr_image(file_bytes, ext=".png"):
+    """
+    Try local Tesseract first. If pytesseract / Tesseract engine is not
+    available (e.g. Vercel), fall back to Gemini Vision.
+    """
+    try:
+        import pytesseract  # noqa: F401
+        import PIL  # noqa: F401
+    except ImportError:
+        return _ocr_gemini(file_bytes, ext)
+
+    try:
+        return _ocr_tesseract(file_bytes)
+    except FileReadError as e:
+        # Tesseract engine missing on server -> fallback to Gemini
+        if "not installed" in str(e):
+            return _ocr_gemini(file_bytes, ext)
+        raise
+
+
+def _ocr_tesseract(file_bytes):
     """
     Extract text from an image using pytesseract (local, free, no API).
     """
@@ -146,7 +217,7 @@ def extract_text(file_bytes, filename):
         # =========================
         elif ext in (".jpg", ".jpeg", ".png"):
 
-            text = _ocr_image(file_bytes)
+            text = _ocr_image(file_bytes, ext)
 
         # =========================
         # UNSUPPORTED FILE
