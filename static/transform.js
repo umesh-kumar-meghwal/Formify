@@ -11,6 +11,7 @@ const outputPills = document.querySelectorAll(".output-pill");
 const selectedCount = document.getElementById("selectedCount");
 
 const generateButton = document.getElementById("generateButton");
+const regenerateButton = document.getElementById("regenerate");
 
 const generatedSection = document.getElementById("generatedSection");
 const generatedOutputs = document.getElementById("generatedOutputs");
@@ -200,6 +201,31 @@ function clearGeneralError() {
   generalError.textContent = "";
   generalError.classList.add("hidden");
 }
+
+
+
+
+regenerateButton.addEventListener("click", async () => {
+  clearGeneralError();
+
+  if (isGenerating) return;
+
+  const valid = validateForm();
+  if (!valid) return;
+
+  const requestData = collectFormData();
+
+  setGeneratingState(true);
+
+  try {
+    const event = new CustomEvent("formify:generate", { detail: requestData });
+    document.dispatchEvent(event);
+  } catch (error) {
+    console.error("Generation error:", error);
+    showGeneralError("Something went wrong while preparing the request.");
+    setGeneratingState(false);
+  }
+});
 
 
 
@@ -400,7 +426,7 @@ function createOutputCard(output) {
       <div class="flex flex-wrap items-center gap-2">
         <button type="button" class="copy-output rounded-lg border border-[#D0D5DD] bg-white px-3 py-1.5 text-[12px] font-medium text-[#344054] transition hover:bg-[#F9FAFB]" data-action="copy">Copy</button>
         <button type="button" class="download-output rounded-lg border border-[#D0D5DD] bg-white px-3 py-1.5 text-[12px] font-medium text-[#344054] transition hover:bg-[#F9FAFB]" data-action="download">${downloadLabel}</button>
-        <button type="button" class="regenerate-output rounded-lg border border-[#D0D5DD] bg-white px-3 py-1.5 text-[12px] font-medium text-[#344054] transition hover:bg-[#F9FAFB]" data-action="regenerate">Regenerate</button>
+        <button type="button" class="regenerate-output rounded-lg border border-[#D0D5DD] bg-white px-3 py-1.5 text-[12px] font-medium text-[#344054] transition hover:bg-[#F9FAFB]" id="regenerate">Regenerate</button>
       </div>
     </div>
     <div class="px-5 py-5">
@@ -481,10 +507,7 @@ function createOutputCard(output) {
     });
   }
 
-  const regenerateButton = card.querySelector(".regenerate-output");
-  regenerateButton.addEventListener("click", () => {
-    regenerateOutput(output.type);
-  });
+  
 
   return card;
 }
