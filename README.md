@@ -1,144 +1,47 @@
-# 📝 Formify
+# Formify
 
-**AI-Powered Content Transformation & Document Generation Platform**
+Setup instructions for running Formify locally and deploying it on Vercel.
 
-Formify converts text, documents, PDFs and images into structured content using AI, OCR and document-processing tools.
+## Prerequisites
 
-## 🔗 Project Links
+- Python 3.12
+- Git
+- A [Gemini API key](https://aistudio.google.com/)
+- A [Supabase](https://supabase.com/) project
+- A Gmail account with an [App Password](https://myaccount.google.com/apppasswords) (used to send OTP emails)
 
-- **GitHub:** https://github.com/umesh-kumar-meghwal/Formify
-- **Live Demo:** https://formify-orcin.vercel.app/
-
----
-
-## 🛠️ Tech Stack
-
-- **Backend:** Python, Flask, REST APIs
-- **AI:** Google Gemini
-- **Document Processing:** PyPDF, python-docx, python-pptx
-- **OCR / Image Processing:** Tesseract OCR, OpenCV
-- **Database & Storage:** Supabase
-- **Frontend:** HTML, CSS, JavaScript
-- **Authentication:** Flask Sessions + Email OTP
-
----
-
-# ⚙️ Setup Instructions
-
-## 1. Clone the Repository
+## 1. Clone the repository
 
 ```bash
 git clone https://github.com/umesh-kumar-meghwal/Formify.git
 cd Formify
 ```
 
-## 2. Create Virtual Environment
-
-### Windows
+## 2. Create a virtual environment
 
 ```bash
 python -m venv venv
-venv\Scripts\activate
 ```
 
-### Linux / macOS
+Activate it:
 
 ```bash
-python3 -m venv venv
+# Windows
+venv\Scripts\activate
+
+# macOS / Linux
 source venv/bin/activate
 ```
 
-## 3. Install Dependencies
+## 3. Install dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-## 4. Install Tesseract OCR
+`requirements.txt` should include at least:
 
-Formify uses Tesseract OCR for extracting text from images.
-
-Install **Tesseract OCR** separately on your system and make sure the Tesseract executable is available in your system PATH.
-
----
-
-## 5. Configure Environment Variables
-
-Create a `.env` file in the project root:
-
-```env
-SUPABASE_URL=your_supabase_url
-SUPABASE_SECRET_KEY=your_supabase_secret_key
-
-GEMINI_API_KEY=your_gemini_api_key
-
-SMTP_EMAIL=your_email
-SMTP_PASSWORD=your_app_password
-
-FLASK_SECRET_KEY=your_secret_key
 ```
-
-### Required Services
-
-- **Supabase** — Database and Storage
-- **Google Gemini API** — AI content generation
-- **SMTP/Gmail** — Email OTP verification
-
-> Never commit your `.env` file or expose API keys and passwords publicly.
-
----
-
-## 6. Run the Application
-
-```bash
-python app.py
-```
-
-The application will run at:
-
-```text
-http://127.0.0.1:5000
-```
-
-Open this URL in your browser.
-
----
-
-## 📄 Supported Processing
-
-Formify supports processing source content and generating:
-
-- Summaries
-- Reports
-- Presentations
-- Infographics
-- Structured content
-
-### Processing Flow
-
-```text
-User Input
-    ↓
-Content / File Extraction
-    ↓
-OCR (when required)
-    ↓
-Source Analysis
-    ↓
-AI Transformation
-    ↓
-Output Validation
-    ↓
-Generated Output
-```
-
----
-
-## 📦 Main Dependencies
-
-The project uses the dependencies listed in `requirements.txt`, including:
-
-```text
 flask
 python-dotenv
 google-genai
@@ -147,31 +50,51 @@ pypdf
 python-docx
 python-pptx
 requests
-rapidocr-onnxruntime
-opencv-python-headless
 pillow
 numpy
+rapidocr-onnxruntime
+opencv-python-headless
 ```
 
----
+## 4. Configure environment variables
 
-## 🔐 Security
+Create a `.env` file in the project root:
 
-- Keep credentials inside environment variables.
-- Do not commit `.env` to GitHub.
-- Use a secure `FLASK_SECRET_KEY` in production.
-- Use a Gmail App Password or valid SMTP credentials for email OTP.
+```env
+FLASK_SECRET_KEY=change-this-to-a-long-random-string
 
----
+GEMINI_API_KEY=your_gemini_api_key
+GEMINI_MODELS=gemini-3.8-flash,gemini-3.5-flash-lite
 
-## 📌 Project Information
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_SECRET_KEY=your_supabase_secret_key
 
-**Project:** Formify  
-**Category:** AI / Content Transformation  
-**Platform:** Web Application
+SMTP_EMAIL=your_email@gmail.com
+SMTP_PASSWORD=your_gmail_app_password
+```
 
----
+`GEMINI_MODELS` is optional. Models are tried in order, and if one is overloaded or out of quota, the next one is used.
 
-## 🚀 Formify
+Do not commit `.env` to GitHub. Make sure it is listed in `.gitignore`.
 
-**Transform Information into Meaningful Content.**
+## 5. Run the app
+
+```bash
+python app.py
+```
+
+Open http://localhost:5000
+
+## Deploying to Vercel
+
+1. Push the project to GitHub and import it in Vercel.
+2. Add every variable from the `.env` example in **Project Settings, Environment Variables**.
+3. Keep dependencies small (function size limit is 500 MB). Use `opencv-python-headless`, and do not add `torch`, `easyocr` or `opencv-python`.
+4. If the build installs the regular `opencv-python` (pulled in by RapidOCR), add a `pyproject.toml` in the project root:
+
+   ```toml
+   [tool.uv]
+   override-dependencies = ["opencv-python ; sys_platform == 'never'"]
+   ```
+
+5. Redeploy after changing environment variables.
