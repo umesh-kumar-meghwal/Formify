@@ -14,7 +14,7 @@ if not API_KEY:
 
 client = genai.Client(api_key=API_KEY)
 
-MODEL_NAME = "gemini-3.5-flash-lite"
+MODEL_NAME = "gemini-3.8-flash"
 
 # 503 (model overloaded) is temporary. Retry a few times with a short
 # backoff before giving up, instead of failing the whole request.

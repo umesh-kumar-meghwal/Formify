@@ -80,7 +80,6 @@ def extract_text(file_bytes, filename):
         # =========================
         elif ext in (".jpg", ".jpeg", ".png"):
 
-            import base64
             from google import genai
             from google.genai import types
 
@@ -95,32 +94,26 @@ def extract_text(file_bytes, filename):
                 api_key=api_key
             )
 
-            # MIME type
             if ext in (".jpg", ".jpeg"):
                 mime_type = "image/jpeg"
             else:
                 mime_type = "image/png"
 
-            # Convert image bytes → base64
-            image_base64 = base64.b64encode(
-                file_bytes
-            ).decode("utf-8")
-
             prompt = """
-Extract all readable text from this image.
+        Extract all readable text from this image.
 
-Rules:
-- Return ONLY the extracted text.
-- Preserve the original wording as much as possible.
-- Preserve paragraphs and line breaks.
-- Do not summarize.
-- Do not explain the image.
-- Do not add information that is not visible.
-- If there is no readable text, return an empty response.
-"""
+        Rules:
+        - Return ONLY the extracted text.
+        - Preserve the original wording.
+        - Preserve paragraphs and line breaks.
+        - Do not summarize.
+        - Do not explain the image.
+        - Do not add information that is not visible.
+        - If there is no readable text, return an empty response.
+        """
 
             response = client.models.generate_content(
-                model="gemini-2.5-flash",
+                model="gemini-3.8-flash",
                 contents=[
                     types.Part.from_bytes(
                         data=file_bytes,
@@ -131,7 +124,6 @@ Rules:
             )
 
             text = response.text or ""
-
         # =========================
         # UNSUPPORTED FILE
         # =========================
