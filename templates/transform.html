@@ -8,7 +8,7 @@
 
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
- <script src="/static/transform.js" defer></script>
+  <script src="/static/transform.js" defer></script>
 
   <!-- Tailwind Custom Configuration -->
   <script>
@@ -40,10 +40,12 @@
       width: 8px;
       height: 8px;
     }
+
     textarea::-webkit-scrollbar-thumb {
       background-color: #D0D5DD;
       border-radius: 4px;
     }
+
     textarea::-webkit-scrollbar-thumb:hover {
       background-color: #98A2B3;
     }
@@ -56,8 +58,13 @@
   <header class="sticky top-0 z-30 border-b border-[#E4E7EC] bg-white/95 backdrop-blur">
     <div class="mx-auto flex h-16 max-w-[1400px] items-center justify-between px-5 sm:px-8">
 
-      <a href="/" class="text-[21px] font-semibold tracking-[-0.02em] text-[#172033]">
-        Formify
+      <a href="/" class="flex items-center gap-2.5 text-[21px] font-semibold tracking-[-0.02em] text-[#172033]">
+        <img
+          src="{{ url_for('static', filename='logo.png') }}"
+          alt="Formify Logo"
+          class="h-11 w-11 shrink-0 object-contain"
+        />
+        <span>Formify</span>
       </a>
 
       <nav class="flex items-center gap-1" aria-label="Main navigation">
@@ -161,11 +168,17 @@
 
         <div id="outputTypes" class="flex flex-wrap gap-2.5">
           <button type="button" class="output-pill rounded-full border border-[#D0D5DD] bg-white px-4 py-2 text-[13px] font-medium text-[#344054] transition hover:border-[#98A2B3] hover:bg-[#F9FAFB]" data-output="executive-summary" aria-pressed="false">Executive Summary</button>
+
           <button type="button" class="output-pill rounded-full border border-[#D0D5DD] bg-white px-4 py-2 text-[13px] font-medium text-[#344054] transition hover:border-[#98A2B3] hover:bg-[#F9FAFB]" data-output="technical-advisory" aria-pressed="false">Technical Advisory</button>
+
           <button type="button" class="output-pill rounded-full border border-[#D0D5DD] bg-white px-4 py-2 text-[13px] font-medium text-[#344054] transition hover:border-[#98A2B3] hover:bg-[#F9FAFB]" data-output="linkedin-post" aria-pressed="false">LinkedIn Post</button>
+
           <button type="button" class="output-pill rounded-full border border-[#D0D5DD] bg-white px-4 py-2 text-[13px] font-medium text-[#344054] transition hover:border-[#98A2B3] hover:bg-[#F9FAFB]" data-output="x-post" aria-pressed="false">X Post</button>
+
           <button type="button" class="output-pill rounded-full border border-[#D0D5DD] bg-white px-4 py-2 text-[13px] font-medium text-[#344054] transition hover:border-[#98A2B3] hover:bg-[#F9FAFB]" data-output="infographic" aria-pressed="false">Infographic</button>
+
           <button type="button" class="output-pill rounded-full border border-[#D0D5DD] bg-white px-4 py-2 text-[13px] font-medium text-[#344054] transition hover:border-[#98A2B3] hover:bg-[#F9FAFB]" data-output="presentation" aria-pressed="false">Presentation</button>
+
           <button type="button" class="output-pill rounded-full border border-[#D0D5DD] bg-white px-4 py-2 text-[13px] font-medium text-[#344054] transition hover:border-[#98A2B3] hover:bg-[#F9FAFB]" data-output="incident-report" aria-pressed="false">Incident Report</button>
         </div>
 
@@ -304,7 +317,7 @@
   </footer>
 
   <script>
-    
+
     document.addEventListener("formify:generate", async (event) => {
 
       const formData = event.detail;
@@ -331,7 +344,7 @@
         body.append("style", formData.settings.style);
         body.append("additionalInstructions", formData.additionalInstructions || "");
 
-        
+
         const response = await fetch("/transformations", {
           method: "POST",
           body
