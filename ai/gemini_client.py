@@ -18,10 +18,10 @@ client = genai.Client(api_key=API_KEY)
 # Models are tried in this order. If one is overloaded (503), out of quota
 # (429) or not found (404), the next one is tried automatically.
 # Override from Vercel / .env without touching code:
-#   GEMINI_MODELS=gemini-3.8-flash,gemini-2.5-flash,gemini-2.5-flash-lite
+#   GEMINI_MODELS=gemini-3.8-flash,gemini-3.5-flash-lite
 # (check https://ai.dev/rate-limit for models available on your key)
 # ---------------------------------------------------------------------------
-DEFAULT_MODELS = "gemini-3.8-flash,gemini-2.5-flash,gemini-2.5-flash-lite"
+DEFAULT_MODELS = "gemini-3.8-flash,gemini-3.5-flash-lite"
 
 MODELS = [
     m.strip()
