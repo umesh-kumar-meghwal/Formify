@@ -28,7 +28,6 @@ def extract_text(file_bytes, filename):
                 errors="ignore"
             )
 
-
         # =========================
         # PDF
         # =========================
@@ -44,7 +43,6 @@ def extract_text(file_bytes, filename):
                 (page.extract_text() or "")
                 for page in reader.pages
             )
-
 
         # =========================
         # DOCX
@@ -76,62 +74,63 @@ def extract_text(file_bytes, filename):
 
             text = "\n".join(parts)
 
-
         # =========================
         # IMAGE OCR
+        # Gemini Vision
         # =========================
         elif ext in (".jpg", ".jpeg", ".png"):
 
-            import cv2
-            import numpy as np
-            import pytesseract
+            import base64
+            from google import genai
+            from google.genai import types
 
-            # Convert bytes → numpy array
-            image_array = np.frombuffer(
-                file_bytes,
-                np.uint8
-            )
+            api_key = os.getenv("GEMINI_API_KEY")
 
-            image = cv2.imdecode(
-                image_array,
-                cv2.IMREAD_COLOR
-            )
-
-            if image is None:
+            if not api_key:
                 raise FileReadError(
-                    "Could not open the image file."
+                    "GEMINI_API_KEY is not configured."
                 )
 
-            # Upscale
-            image = cv2.resize(
-                image,
-                None,
-                fx=2,
-                fy=2,
-                interpolation=cv2.INTER_CUBIC
+            client = genai.Client(
+                api_key=api_key
             )
 
-            # Grayscale
-            gray = cv2.cvtColor(
-                image,
-                cv2.COLOR_BGR2GRAY
+            # MIME type
+            if ext in (".jpg", ".jpeg"):
+                mime_type = "image/jpeg"
+            else:
+                mime_type = "image/png"
+
+            # Convert image bytes → base64
+            image_base64 = base64.b64encode(
+                file_bytes
+            ).decode("utf-8")
+
+            prompt = """
+Extract all readable text from this image.
+
+Rules:
+- Return ONLY the extracted text.
+- Preserve the original wording as much as possible.
+- Preserve paragraphs and line breaks.
+- Do not summarize.
+- Do not explain the image.
+- Do not add information that is not visible.
+- If there is no readable text, return an empty response.
+"""
+
+            response = client.models.generate_content(
+                model="gemini-2.5-flash",
+                contents=[
+                    types.Part.from_bytes(
+                        data=file_bytes,
+                        mime_type=mime_type
+                    ),
+                    prompt
+                ]
             )
 
-            # Improve contrast
-            gray = cv2.threshold(
-                gray,
-                0,
-                255,
-                cv2.THRESH_BINARY + cv2.THRESH_OTSU
-            )[1]
-
-            # OCR
-            text = pytesseract.image_to_string(
-                gray,
-                lang="eng",
-                config="--psm 6"
-            )
-
+            text = response.text or ""
 
         # =========================
         # UNSUPPORTED FILE
@@ -144,7 +143,6 @@ def extract_text(file_bytes, filename):
                 "JPG, JPEG or PNG file."
             )
 
-
     except FileReadError:
         raise
 
@@ -154,10 +152,8 @@ def extract_text(file_bytes, filename):
             f"Could not read the uploaded file: {e}"
         )
 
-
     # Remove unnecessary spaces
     text = text.strip()
-
 
     # No text found
     if not text:
@@ -167,6 +163,5 @@ def extract_text(file_bytes, filename):
             "The file may be scanned, image-only, "
             "blurry, or contain no readable text."
         )
-
 
     return text
