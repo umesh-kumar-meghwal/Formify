@@ -1,4 +1,5 @@
 import os
+import time
 from io import BytesIO
 
 
@@ -100,30 +101,73 @@ def extract_text(file_bytes, filename):
                 mime_type = "image/png"
 
             prompt = """
-        Extract all readable text from this image.
+Extract all readable text from this image.
 
-        Rules:
-        - Return ONLY the extracted text.
-        - Preserve the original wording.
-        - Preserve paragraphs and line breaks.
-        - Do not summarize.
-        - Do not explain the image.
-        - Do not add information that is not visible.
-        - If there is no readable text, return an empty response.
-        """
+Rules:
+- Return ONLY the extracted text.
+- Preserve the original wording.
+- Preserve paragraphs and line breaks.
+- Do not summarize.
+- Do not explain the image.
+- Do not add information that is not visible.
+- If there is no readable text, return an empty response.
+"""
 
-            response = client.models.generate_content(
-                model="gemini-3.8-flash",
-                contents=[
-                    types.Part.from_bytes(
-                        data=file_bytes,
-                        mime_type=mime_type
-                    ),
-                    prompt
-                ]
-            )
+            text = ""
 
-            text = response.text or ""
+            # =========================
+            # RETRY GEMINI OCR
+            # =========================
+            max_attempts = 3
+
+            for attempt in range(max_attempts):
+
+                try:
+
+                    response = client.models.generate_content(
+                        model="gemini-3.8-flash",
+                        contents=[
+                            types.Part.from_bytes(
+                                data=file_bytes,
+                                mime_type=mime_type
+                            ),
+                            prompt
+                        ]
+                    )
+
+                    text = response.text or ""
+
+                    # Success
+                    if text.strip():
+                        break
+
+                except Exception as e:
+
+                    error_message = str(e)
+
+                    is_temporary_error = (
+                        "503" in error_message
+                        or "UNAVAILABLE" in error_message
+                        or "429" in error_message
+                        or "RESOURCE_EXHAUSTED" in error_message
+                    )
+
+                    if not is_temporary_error:
+                        raise
+
+                    # Last attempt
+                    if attempt == max_attempts - 1:
+                        raise FileReadError(
+                            "Gemini OCR is temporarily unavailable. "
+                            "Please try uploading the image again "
+                            "after a few seconds."
+                        )
+
+                    # Exponential backoff:
+                    # 2 sec → 4 sec
+                    wait_time = 2 ** (attempt + 1)
+                    time.sleep(wait_time)
+
         # =========================
         # UNSUPPORTED FILE
         # =========================
@@ -144,10 +188,14 @@ def extract_text(file_bytes, filename):
             f"Could not read the uploaded file: {e}"
         )
 
-    # Remove unnecessary spaces
+    # =========================
+    # CLEAN TEXT
+    # =========================
     text = text.strip()
 
-    # No text found
+    # =========================
+    # NO TEXT FOUND
+    # =========================
     if not text:
 
         raise FileReadError(
