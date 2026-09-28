@@ -1,0 +1,21 @@
+[project]
+name = "formify"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = [
+    "flask",
+    "python-dotenv",
+    "google-genai",
+    "supabase",
+    "pypdf",
+    "python-docx",
+    "python-pptx",
+    "requests",
+    "pillow",
+    "numpy",
+    "rapidocr-onnxruntime",
+    "opencv-python-headless",
+]
+
+[tool.uv]
+override-dependencies = ["opencv-python ; sys_platform == 'never'"]
