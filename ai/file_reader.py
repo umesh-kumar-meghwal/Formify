@@ -7,144 +7,82 @@ class FileReadError(Exception):
 
 
 # ---------------------------------------------------------------------------
-# OCR settings (optional, via .env)
-#   TESSERACT_CMD = C:\Program Files\Tesseract-OCR\tesseract.exe   (Windows only)
-#   OCR_LANGS     = eng            (default)  |  eng+hin  (English + Hindi)
+# IMAGE OCR - RapidOCR (pure pip, no Gemini, no Tesseract binary, works on Vercel)
 # ---------------------------------------------------------------------------
-OCR_LANGS = os.getenv("OCR_LANGS", "eng")
-TESSERACT_CMD = os.getenv("TESSERACT_CMD")
+_ocr_engine = None
 
 
-def _ocr_gemini(file_bytes, ext):
-    """
-    Fallback OCR using Gemini Vision (used when pytesseract is not available,
-    e.g. on Vercel).
-    """
-    import time
-    from google import genai
-    from google.genai import types
-
-    api_key = os.getenv("GEMINI_API_KEY")
-    if not api_key:
-        raise FileReadError("GEMINI_API_KEY is not configured.")
-
-    client = genai.Client(api_key=api_key)
-    mime_type = "image/jpeg" if ext in (".jpg", ".jpeg") else "image/png"
-    model = os.getenv("GEMINI_OCR_MODEL", "gemini-3.8-flash")
-
-    prompt = (
-        "Extract all readable text from this image.\n"
-        "Rules:\n"
-        "- Return ONLY the extracted text.\n"
-        "- Preserve the original wording, paragraphs and line breaks.\n"
-        "- Do not summarize or explain the image.\n"
-        "- If there is no readable text, return an empty response."
-    )
-
-    max_attempts = 3
-    for attempt in range(max_attempts):
+def _get_ocr_engine():
+    """Load the OCR engine once and reuse it (loading is the slow part)."""
+    global _ocr_engine
+    if _ocr_engine is None:
         try:
-            response = client.models.generate_content(
-                model=model,
-                contents=[
-                    types.Part.from_bytes(data=file_bytes, mime_type=mime_type),
-                    prompt,
-                ],
+            from rapidocr_onnxruntime import RapidOCR
+        except ImportError:
+            raise FileReadError(
+                "OCR library is missing. Add 'rapidocr-onnxruntime' and "
+                "'pillow' to requirements.txt"
             )
-            return response.text or ""
-        except Exception as e:
-            msg = str(e).upper()
-            temporary = any(
-                k in msg for k in ("503", "UNAVAILABLE", "429", "RESOURCE_EXHAUSTED")
-            )
-            if temporary and attempt < max_attempts - 1:
-                time.sleep(2 ** (attempt + 1))
-            else:
-                raise FileReadError(
-                    "OCR is temporarily unavailable. "
-                    "Please try uploading the image again after a few seconds."
-                )
+        _ocr_engine = RapidOCR()
+    return _ocr_engine
 
 
-def _ocr_image(file_bytes, ext=".png"):
-    """
-    Try local Tesseract first. If pytesseract / Tesseract engine is not
-    available (e.g. Vercel), fall back to Gemini Vision.
-    """
+def _ocr_image(file_bytes):
+    """Extract text from an image using RapidOCR."""
     try:
-        import pytesseract  # noqa: F401
-        import PIL  # noqa: F401
-    except ImportError:
-        return _ocr_gemini(file_bytes, ext)
-
-    try:
-        return _ocr_tesseract(file_bytes)
-    except FileReadError as e:
-        # Tesseract engine missing on server -> fallback to Gemini
-        if "not installed" in str(e):
-            return _ocr_gemini(file_bytes, ext)
-        raise
-
-
-def _ocr_tesseract(file_bytes):
-    """
-    Extract text from an image using pytesseract (local, free, no API).
-    """
-    try:
-        import pytesseract
+        import numpy as np
         from PIL import Image, ImageOps
     except ImportError:
         raise FileReadError(
-            "OCR libraries are missing. Run: pip install pytesseract pillow"
+            "Image libraries are missing. Add 'pillow' and 'numpy' to requirements.txt"
         )
 
-    if TESSERACT_CMD:
-        pytesseract.pytesseract.tesseract_cmd = TESSERACT_CMD
+    img = Image.open(BytesIO(file_bytes))
 
-    try:
-        img = Image.open(BytesIO(file_bytes))
+    # Fix phone-camera rotation (EXIF)
+    img = ImageOps.exif_transpose(img)
 
-        # Fix phone-camera rotation (EXIF)
-        img = ImageOps.exif_transpose(img)
+    # Transparent PNG -> white background
+    if img.mode in ("RGBA", "LA", "P"):
+        img = img.convert("RGBA")
+        background = Image.new("RGB", img.size, (255, 255, 255))
+        background.paste(img, mask=img.split()[-1])
+        img = background
+    else:
+        img = img.convert("RGB")
 
-        # Handle transparent PNGs -> white background
-        if img.mode in ("RGBA", "LA", "P"):
-            img = img.convert("RGBA")
-            background = Image.new("RGB", img.size, (255, 255, 255))
-            background.paste(img, mask=img.split()[-1])
-            img = background
-        else:
-            img = img.convert("RGB")
-
-        # Upscale small images (OCR works better on bigger text)
-        min_width = 1500
-        if img.width < min_width:
-            scale = min_width / img.width
-            img = img.resize(
-                (int(img.width * scale), int(img.height * scale)),
-                Image.LANCZOS,
-            )
-
-        # Grayscale + auto contrast improves accuracy
-        img = ImageOps.grayscale(img)
-        img = ImageOps.autocontrast(img)
-
-        # --oem 3 = default engine, --psm 3 = fully automatic page segmentation
-        return pytesseract.image_to_string(
-            img,
-            lang=OCR_LANGS,
-            config="--oem 3 --psm 3",
+    # Limit huge images (saves memory / time on serverless)
+    max_side = 2500
+    if max(img.size) > max_side:
+        scale = max_side / max(img.size)
+        img = img.resize(
+            (int(img.width * scale), int(img.height * scale)),
+            Image.LANCZOS,
         )
 
-    except pytesseract.TesseractNotFoundError:
-        raise FileReadError(
-            "Tesseract OCR engine is not installed on the server. "
-            "Install it and (on Windows) set TESSERACT_CMD in .env."
-        )
-    except pytesseract.TesseractError as e:
-        raise FileReadError(
-            f"OCR failed (check OCR_LANGS / language pack): {e}"
-        )
+    engine = _get_ocr_engine()
+    result, _ = engine(np.array(img))
+
+    if not result:
+        return ""
+
+    # result item = [box, text, confidence]; sort top-to-bottom, left-to-right
+    result = sorted(result, key=lambda r: (round(r[0][0][1] / 15), r[0][0][0]))
+
+    lines = []
+    last_row = None
+    current = []
+    for box, txt, _score in result:
+        row = round(box[0][1] / 15)
+        if last_row is not None and row != last_row:
+            lines.append(" ".join(current))
+            current = []
+        current.append(txt)
+        last_row = row
+    if current:
+        lines.append(" ".join(current))
+
+    return "\n".join(lines)
 
 
 def extract_text(file_bytes, filename):
@@ -213,11 +151,11 @@ def extract_text(file_bytes, filename):
             text = "\n".join(parts)
 
         # =========================
-        # IMAGE OCR - PYTESSERACT
+        # IMAGE OCR - RAPIDOCR
         # =========================
         elif ext in (".jpg", ".jpeg", ".png"):
 
-            text = _ocr_image(file_bytes, ext)
+            text = _ocr_image(file_bytes)
 
         # =========================
         # UNSUPPORTED FILE

@@ -6,3 +6,5 @@ pypdf
 python-docx
 python-pptx
 requests
+rapidocr-onnxruntime
+pillow
