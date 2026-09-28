@@ -18,11 +18,9 @@ def _get_ocr_engine():
     if _ocr_engine is None:
         try:
             from rapidocr_onnxruntime import RapidOCR
-        except ImportError:
-            raise FileReadError(
-                "OCR library is missing. Add 'rapidocr-onnxruntime' and "
-                "'pillow' to requirements.txt"
-            )
+        except ImportError as e:
+            print(f"[OCR IMPORT ERROR] {e}")
+            raise FileReadError(f"OCR library could not be loaded: {e}")
         _ocr_engine = RapidOCR()
     return _ocr_engine
 
