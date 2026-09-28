@@ -1,11 +1,22 @@
 import json
 
 from .generators import generate_output
-from ai.validator import validate_all  
-
+from ai.validator import validate_all
 
 
 MAX_ATTEMPTS = 2
+
+
+def _is_transient_api_error(error):
+    """
+    503 (overloaded) / 429 (quota) errors do not get fixed by regenerating
+    immediately, and every retry burns more free-tier quota. Stop early.
+    """
+    msg = str(error).upper()
+    return any(
+        k in msg
+        for k in ("503", "UNAVAILABLE", "429", "RESOURCE_EXHAUSTED")
+    )
 
 
 def generate_validated_output(
@@ -33,7 +44,6 @@ def generate_validated_output(
     }
     """
 
-   
     if isinstance(source_brief, (dict, list)):
         source_brief_text = json.dumps(
             source_brief, ensure_ascii=False, indent=2
@@ -46,6 +56,8 @@ def generate_validated_output(
     attempt = 0
 
     for attempt in range(1, max_attempts + 1):
+        api_error = False
+
         try:
             response_text = generate_output(
                 source_brief=source_brief_text,
@@ -78,6 +90,7 @@ def generate_validated_output(
         except Exception as e:
             print(f"[{output_type}] Generation or validation failed: {e}")
             data = None
+            api_error = _is_transient_api_error(e)
             validation = {
                 "valid": False,
                 "issues": [f"Generation or validation failed: {e}"],
@@ -93,7 +106,10 @@ def generate_validated_output(
                 "validation": validation,
             }
 
-    
+        # Gemini overloaded / quota exhausted -> retrying now is pointless
+        if api_error:
+            break
+
     return {
         "output_type": output_type,
         "status": "needs_review",

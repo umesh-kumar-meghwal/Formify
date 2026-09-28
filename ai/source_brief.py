@@ -1,5 +1,16 @@
-from ai.gemini_client import generate_with_gemini
 import json
+import re
+
+from ai.gemini_client import generate_with_gemini
+
+
+def _parse_json(text):
+    """Parse JSON even if the model wraps it in ```json fences."""
+    text = (text or "").strip()
+    text = re.sub(r"^```(?:json)?\s*", "", text)
+    text = re.sub(r"\s*```$", "", text)
+    return json.loads(text)
+
 
 def create_source_brief(source_text):
 
@@ -35,4 +46,4 @@ Rules:
 
     response_text = generate_with_gemini(prompt)
 
-    return json.loads(response_text)
+    return _parse_json(response_text)
