@@ -139,17 +139,18 @@ Generated Output
 The project uses the dependencies listed in `requirements.txt`, including:
 
 ```text
-Flask
-flask-cors
+flask
 python-dotenv
 google-genai
-openai
+supabase
 pypdf
 python-docx
 python-pptx
-pytesseract
-opencv-python
-supabase
+requests
+rapidocr-onnxruntime
+opencv-python-headless
+pillow
+numpy
 ```
 
 ---
